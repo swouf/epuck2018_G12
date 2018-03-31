@@ -8,10 +8,7 @@
 #include <usbcfg.h>
 #include <main.h>
 #include <chprintf.h>
-#include <motors.h>
-
-//uncomment to send the FFTs results from the real microphones
-//#define SEND_FROM_MIC
+#include <odometric_controller.h>
 
 static void serial_start(void)
 {
@@ -24,6 +21,8 @@ static void serial_start(void)
 
 	sdStart(&SD3, &ser_cfg); // UART3.
 }
+
+#ifdef _DEBUG
 
 static void timer12_start(void){
     //General Purpose Timer configuration   
@@ -41,6 +40,8 @@ static void timer12_start(void){
     gptStartContinuous(&GPTD12, 0xFFFF);
 }
 
+#endif
+
 int main(void)
 {
 
@@ -52,10 +53,46 @@ int main(void)
     serial_start();
     //starts the USB communication
     usb_start();
+
+#ifdef _DEBUG
     //starts timer 12
     timer12_start();
-    //inits the motors
-    motors_init();
+#endif
+
+    /*float test = 2.0;
+    volatile uint16_t time = 0;
+    chSysLock(); //reset the timer counter
+    GPTD12.tim->CNT = 0;
+
+    for(int i = 0; i<4;i++)
+    {
+    	test = atan(test);
+    }
+
+    time = GPTD12.tim->CNT;
+    chSysUnlock();
+
+    float penis = 12.3;
+    uint16_t gpenis = (uint16_t) penis;
+
+    while (1) {
+    	chprintf((BaseSequentialStream *)&SDU1, "gpenis=%d\n", gpenis);
+    	chprintf((BaseSequentialStream *)&SD3, "gpenis=%d\n", gpenis);
+    	chprintf((BaseSequentialStream *)&SDU1, "time=%dus\n test = %f\n", time, test);
+    	chprintf((BaseSequentialStream *)&SD3, "time=%dus\n test = %f\n", time, test);
+    	chThdSleepMilliseconds(1000);
+
+    }*/
+
+#ifdef _DEBUG
+				chprintf((BaseSequentialStream *)&SD3, "++\n");
+#endif
+
+	odCtrlAddPointToPath(1, 200000, 1);
+	odCtrlAddPointToPath(200000, 200000, 0);
+	odCtrlAddPointToPath(200000, 1, 0);
+	odCtrlAddPointToPath(1, 1, 0);
+    odCtrlStart();
 
     while (1) {
     }

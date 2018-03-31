@@ -9,6 +9,10 @@ extern "C" {
 #include "msgbus/messagebus.h"
 #include "parameter/parameter.h"
 
+#define WHEEL_CIRC 125.664f
+#define EPUCK_CIRC 166.504f
+#define PI 3.1415927410125732421875f
+
 
 /** Robot wide IPC bus. */
 extern messagebus_t bus;

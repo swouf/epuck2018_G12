@@ -11,7 +11,8 @@ USE_VERBOSE_COMPILE=no
 GLOBAL_PATH = ../lib/e-puck2_main-processor
 
 #Source files to include
-CSRC += ./main.c
+CSRC += ./main.c \
+		./odometric_controller.c
 
 #Header folders to include
 INCDIR += 
