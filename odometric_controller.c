@@ -72,6 +72,11 @@ static THD_FUNCTION(odometricRegulator, arg) {
 			//alpha = 2*PI-position.orientation+atan(ratio);
 			alpha = atan(ratio);
 
+			if(xd < 0)
+			{
+				alpha += PI;
+			}
+
 #ifdef _DEBUG
 				chprintf((BaseSequentialStream *)&SD3, "ratio = %f\t alpha = %f\n",ratio, alpha);
 #endif
@@ -113,7 +118,7 @@ void odCtrlAddPointToPath(int x, int y, float orientation){
 #ifdef _DEBUG
 	//chSysLock();
 				chprintf((BaseSequentialStream *)&SD3, "Point added to path :\n \
-						x = %d\t y = %d\t , orientation = %f\n", \
+x = %d\t y = %d\t , orientation = %f\n", \
 						pathPtr->x, pathPtr->y, pathPtr->orientation);
 	//chSysUnlock();
 #endif
@@ -135,8 +140,8 @@ static void odCtrlRotate(float alpha)
 	uint32_t leftMotorPos		=	0;
 	uint32_t rightMotorPos		=	0;
 
-	uint32_t leftMotorDispl		=	0;
-	uint32_t rightMotorDispl	=	0;
+	int leftMotorDispl			=	0;
+	int rightMotorDispl			=	0;
 
 	arm_pid_init_f32(&rotationalPID,1);
 
@@ -202,8 +207,8 @@ static void odCtrlMoveForward(int length)
 	uint32_t leftMotorPos		=	0;
 	uint32_t rightMotorPos		=	0;
 
-	uint32_t leftMotorDispl		=	0;
-	uint32_t rightMotorDispl	=	0;
+	int leftMotorDispl		=	0;
+	int rightMotorDispl	=	0;
 
 	float cosOrientation		=	arm_cos_f32(position.orientation);
 	float sinOrientation		=	arm_sin_f32(position.orientation);
@@ -248,9 +253,9 @@ static void odCtrlMoveForward(int length)
 		leftMotorDispl	=	left_motor_get_pos()-leftMotorPos;
 		rightMotorDispl	=	right_motor_get_pos()-rightMotorPos;
 
-		linearStep = leftMotorDispl*stepLength;
+		linearStep = (int)(leftMotorDispl*stepLength*1000);
 
-		linearPos += linearStep*1000;
+		linearPos += linearStep;
 
 		//position.x += (int) (cosOrientation*linearStep);
 		//position.y += (int) (sinOrientation*linearStep);
