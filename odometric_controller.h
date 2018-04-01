@@ -1,7 +1,7 @@
 /**
  * @file    odometric_controller.h
  * @brief   odometric controller for epuck
- * @author	Jérémy Jayet (jeremy.jayet@epfl.ch)
+ * @author	Jérémy Jayet (jeremy.jayet@epfl.ch) Minh Truong (minh.truong@epfl.ch)
  *
  */
 
