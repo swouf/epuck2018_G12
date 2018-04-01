@@ -9,7 +9,7 @@
 #define TOF_H_
 
 void tof_init(void);
-uint16_t get_distance_tof(void);
+uint16_t tof_get_distance(void);
 void tof_stop(void);
 
 

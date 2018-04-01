@@ -90,7 +90,7 @@ int main(void)
     }*/
 
 #ifdef _DEBUG
-				chprintf((BaseSequentialStream *)&SD3, "distance Time Of Flight = %d mm\n", get_distance_tof());
+				chprintf((BaseSequentialStream *)&SD3, "distance Time Of Flight = %d mm\n", tof_get_distance());
 #endif
 
 	odCtrlAddPointToPath(1, 200000, 0);
@@ -106,6 +106,7 @@ int main(void)
 //    odCtrlStart();
 
     while (1) {
+
     }
 }
 
