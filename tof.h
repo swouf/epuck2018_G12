@@ -8,6 +8,10 @@
 #ifndef TOF_H_
 #define TOF_H_
 
+void tof_init(void);
+uint16_t get_distance_tof(void);
+void tof_stop(void);
+
 
 
 #endif /* TOF_H_ */
