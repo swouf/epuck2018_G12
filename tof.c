@@ -30,3 +30,9 @@ void tof_stop(void)
 {
 	VL53L0X_stop();
 }
+int tof_get_ball_pixel_width(uint16_t tof_get_distance)
+{
+	uint16_t tof_pixelwidth_ball = 0;
+	tof_pixelwidth_ball = LENS_DIAMETER_IN_PIXELS*BALL_SIZE/(2*tof_get_distance);
+	return tof_pixelwidth_ball;
+}

@@ -106,8 +106,8 @@ int main(void)
 //    odCtrlStart();
 
     while (1) {
-    	chprintf((BaseSequentialStream *)&SD3, "distance Time Of Flight = %d mm\n MINH A UNE GIGANTESQUE BITE", tof_get_distance());
-    	chThdSleepSeconds(1);
+    	chprintf((BaseSequentialStream *)&SD3, "TIME OF FLIGHT DISTANCE = %d mm\n", tof_get_distance());
+    	chThdSleepSeconds(3);
     }
 }
 
