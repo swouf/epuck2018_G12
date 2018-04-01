@@ -1,3 +1,10 @@
+/**
+ * @file    odometric_controller.c
+ * @brief   odometric controller for epuck
+ * @author	Jérémy Jayet (jeremy.jayet@epfl.ch)
+ *
+ */
+
 #include "ch.h"
 #include "hal.h"
 #include <math.h>
@@ -14,7 +21,7 @@
 static const float stepLength	=	WHEEL_CIRC/2000;
 
 static position_t position;
-static position_t path[10];
+static position_t path[PATH_BUFFER_SIZE];
 static position_t* pathPtr = path;
 
 static void odCtrlRotate(float alpha);
@@ -51,8 +58,11 @@ static THD_FUNCTION(odometricRegulator, arg) {
     	if(target != pathPtr)
     	{
 #ifdef _DEBUG
-				//chprintf((BaseSequentialStream *)&SD3, "Before : target = 0x%x\n ", target);
 				target++;
+				if(target > &(path[PATH_BUFFER_SIZE]))
+				{
+					target = path;
+				}
 				//chprintf((BaseSequentialStream *)&SD3, "After : target = 0x%x & pathPtr = 0x%x \n", target, pathPtr);
 				chprintf((BaseSequentialStream *)&SD3, "Target :\tx = %d\t y = %d \t orientation = %f \n", target->x, target->y, target->orientation);
 				chprintf((BaseSequentialStream *)&SD3, "Position :\tx = %d\t y = %d \t orientation = %f \n", position.x, position.y, position.orientation);
@@ -92,7 +102,11 @@ static THD_FUNCTION(odometricRegulator, arg) {
 
 			if(arm_sqrt_f32(lengthSquared, &length) == ARM_MATH_SUCCESS)
 				odCtrlMoveForward((int)length);
-			//odCtrlMoveForward(100000);
+
+			if(target->orientation > 0)
+			{
+				odCtrlRotate(target->orientation);
+			}
     	}
     }
 }
@@ -109,11 +123,16 @@ void odCtrlResume(void);
 void odCtrlAddPointToPath(int x, int y, float orientation){
 	position_t* a = pathPtr+1;
 
+	if(a > &(path[PATH_BUFFER_SIZE]))
+	{
+		a = path;
+	}
+
 	a->x = x;
 	a->y = y;
 	a->orientation = orientation;
 
-	pathPtr++;
+	pathPtr = a;
 
 #ifdef _DEBUG
 	//chSysLock();

@@ -8,7 +8,7 @@
 #ifndef ODOMETRIC_CONTROLLER_H_
 #define ODOMETRIC_CONTROLLER_H_
 
-#define _DEBUG_ROTATE
+//#define _DEBUG_ROTATE
 //#define _DEBUG_FORWARD
 
 #define ROTATIONAL_KP	1000
@@ -21,6 +21,8 @@
 
 #define ORIENTATION_ERROR_MAX	0.0175f
 #define LINEAR_ERROR_MAX		130
+
+#define PATH_BUFFER_SIZE 10
 
 typedef struct position_t{
 	int x;
