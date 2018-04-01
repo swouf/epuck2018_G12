@@ -9,6 +9,7 @@
 #include <main.h>
 #include <chprintf.h>
 #include <odometric_controller.h>
+#include "sensors/VL53L0X/VL53L0X.h"
 
 static void serial_start(void)
 {
@@ -53,6 +54,9 @@ int main(void)
     serial_start();
     //starts the USB communication
     usb_start();
+    //init ToF
+    VL53L0X_Dev_t device;
+    VL53L0X_init(&device);
 
 #ifdef _DEBUG
     //starts timer 12
