@@ -11,7 +11,7 @@
 #include <odometric_controller.h>
 #include "tof.h"
 
-#define _DEBUG
+//#define _DEBUG
 
 static void serial_start(void)
 {
@@ -89,9 +89,9 @@ int main(void)
 
     }*/
 
-#ifdef _DEBUG
-				chprintf((BaseSequentialStream *)&SD3, "distance Time Of Flight = %d mm\n", tof_get_distance());
-#endif
+//#ifdef _DEBUG
+//				chprintf((BaseSequentialStream *)&SD3, "distance Time Of Flight = %d mm\n", tof_get_distance());
+//#endif
 
 	odCtrlAddPointToPath(1, 200000, 0);
 	odCtrlAddPointToPath(200000, 200000, 0);
@@ -106,7 +106,8 @@ int main(void)
 //    odCtrlStart();
 
     while (1) {
-
+    	chprintf((BaseSequentialStream *)&SD3, "distance Time Of Flight = %d mm\n MINH A UNE GIGANTESQUE BITE", tof_get_distance());
+    	chThdSleepSeconds(1);
     }
 }
 
