@@ -9,7 +9,9 @@
 #include <main.h>
 #include <chprintf.h>
 #include <odometric_controller.h>
-#include "sensors/VL53L0X/VL53L0X.h"
+#include "tof.h"
+
+#define _DEBUG
 
 static void serial_start(void)
 {
@@ -55,8 +57,7 @@ int main(void)
     //starts the USB communication
     usb_start();
     //init ToF
-    VL53L0X_Dev_t device;
-    VL53L0X_init(&device);
+    tof_init();
 
 #ifdef _DEBUG
     //starts timer 12
@@ -89,7 +90,7 @@ int main(void)
     }*/
 
 #ifdef _DEBUG
-				chprintf((BaseSequentialStream *)&SD3, "++\n");
+				chprintf((BaseSequentialStream *)&SD3, "distance Time Of Flight = %d mm\n", get_distance_tof());
 #endif
 
 	odCtrlAddPointToPath(1, 200000, 0);
@@ -102,7 +103,7 @@ int main(void)
 	odCtrlAddPointToPath(0, 200000, 0);
 	odCtrlAddPointToPath(1, 1, PI/2);
 
-    odCtrlStart();
+//    odCtrlStart();
 
     while (1) {
     }
