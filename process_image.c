@@ -1,12 +1,14 @@
 /*
- * @file	process_image.c
+ * \file	process_image.c
  *
- *  Created on: 31 mars 2018
- *  @author Jérémy Jayet (jeremy.jayet@epfl.ch)
+ *  \date	april 2018
+ *  \author	Jérémy Jayet (jeremy.jayet@epfl.ch)
+ *  \author Minh Truong (minh.truong@epfl.ch)
  */
 
 #include "ch.h"
 #include "hal.h"
+#include <stdbool.h>
 #include <chprintf.h>
 #include <usbcfg.h>
 
@@ -14,10 +16,13 @@
 #include <camera/po8030.h>
 
 #include <process_image.h>
+#include <tof.h>
+#include <odometric_controller.h>
 
 
-static uint16_t ballWidth = 0;
-static uint16_t line_position = IMAGE_BUFFER_SIZE/2;	//middle
+static uint16_t	ballWidth		= 0;
+static uint16_t	line_position	= IMAGE_BUFFER_SIZE/2;	//middle
+static bool		searchingBall	=	true;
 
 //semaphore
 static BSEMAPHORE_DECL(image_ready_sem, TRUE);
@@ -135,14 +140,18 @@ static THD_FUNCTION(ProcessImage, arg) {
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
 
-	uint8_t *img_buff_ptr;
-	uint8_t image[IMAGE_BUFFER_SIZE] = {0};
+	uint8_t		*img_buff_ptr;
+	uint8_t		image[IMAGE_BUFFER_SIZE] = {0};
+	position_t	imagePos;
 
 	//bool send_to_matlab = true;
 
     while(1){
     	//waits until an image has been captured
         chBSemWait(&image_ready_sem);
+
+        imagePos = odCtrlGetPosition();
+
 		  //gets the pointer to the array filled with the last image in RGB565
 		img_buff_ptr = dcmi_get_last_image_ptr();
 
@@ -153,8 +162,19 @@ static THD_FUNCTION(ProcessImage, arg) {
 			image[i/2] = (uint8_t)img_buff_ptr[i]&0xF8;
 		}
 
-		//search for a line in the image and gets its width in pixels
-		ballWidth = extract_line_width(image);
+		if(searchingBall)
+		{
+			//search for a line in the image and gets its width in pixels
+			ballWidth = pImExtractLineWidth(image);
+
+			if((ballWidth - tof_get_ball_pixel_width(tof_get_distance())) < MAX_DIFF_BALL_WIDTH)
+			{
+				searchingBall = false;
+			}
+		}
+		else
+		{
+		}
 
 		// EVENTUELLEMENT À SUPPRIMER
 		/*

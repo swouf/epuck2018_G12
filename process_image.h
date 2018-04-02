@@ -1,8 +1,9 @@
 /*
- * @file	process_image.h
+ * \file	process_image.h
  *
- *  Created on: 2 april 2018
- *  @author Jérémy Jayet (jeremy.jayet@epfl.ch)
+ *  \date	april 2018
+ *  \author	Jérémy Jayet (jeremy.jayet@epfl.ch)
+ *  \author Minh Truong (minh.truong@epfl.ch)
  */
 
 #ifndef PROCESS_IMAGE_H_
@@ -14,6 +15,7 @@
 #define PXTOCM					1570.0f //experimental value
 #define GOAL_DISTANCE 			10.0f
 #define MAX_DISTANCE 			25.0f
+#define MAX_DIFF_BALL_WIDTH		10
 
 void pImProcessImageStart(void);
 uint16_t pImGetLinePosition(void);

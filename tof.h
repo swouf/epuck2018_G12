@@ -14,7 +14,7 @@
 void tof_init(void);
 uint16_t tof_get_distance(void);
 void tof_stop(void);
-int tof_get_ball_pixel_width(uint16_t tof_get_distance);
+int tof_get_ball_pixel_width(uint16_t distance);
 
 
 #endif /* TOF_H_ */

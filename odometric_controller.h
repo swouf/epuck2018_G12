@@ -1,7 +1,8 @@
 /**
- * @file    odometric_controller.h
- * @brief   odometric controller for epuck
- * @author	Jérémy Jayet (jeremy.jayet@epfl.ch) Minh Truong (minh.truong@epfl.ch)
+ * \file    odometric_controller.h
+ * \brief   odometric controller for epuck
+ * \author	Jérémy Jayet (jeremy.jayet@epfl.ch)
+ * \author	Minh Truong (minh.truong@epfl.ch)
  *
  */
 
@@ -40,6 +41,10 @@ void odCtrlAddPointToPath(int x, int y, float orientation);
 
 void odCtrlSetPosition(int x, int y, float orientation);
 
-position_t* odCtrlGetPosition(void);
+position_t odCtrlGetPosition(void);
+
+void odCtrlMoveForward(int length);
+
+void odCtrlRotateTo(float orientation);
 
 #endif /* ODOMETRIC_CONTROLLER_H_ */
