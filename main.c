@@ -9,6 +9,9 @@
 #include <main.h>
 #include <chprintf.h>
 #include <odometric_controller.h>
+#include "tof.h"
+
+//#define _DEBUG
 
 static void serial_start(void)
 {
@@ -53,6 +56,8 @@ int main(void)
     serial_start();
     //starts the USB communication
     usb_start();
+    //init ToF
+    tof_init();
 
 #ifdef _DEBUG
     //starts timer 12
@@ -84,9 +89,9 @@ int main(void)
 
     }*/
 
-#ifdef _DEBUG
-				chprintf((BaseSequentialStream *)&SD3, "++\n");
-#endif
+//#ifdef _DEBUG
+//				chprintf((BaseSequentialStream *)&SD3, "distance Time Of Flight = %d mm\n", tof_get_distance());
+//#endif
 
 	odCtrlAddPointToPath(1, 200000, 0);
 	odCtrlAddPointToPath(200000, 200000, 0);
@@ -98,9 +103,11 @@ int main(void)
 	odCtrlAddPointToPath(0, 200000, 0);
 	odCtrlAddPointToPath(1, 1, PI/2);
 
-    odCtrlStart();
+//    odCtrlStart();
 
     while (1) {
+    	chprintf((BaseSequentialStream *)&SD3, "TIME OF FLIGHT DISTANCE = %d mm\n", tof_get_distance());
+    	chThdSleepSeconds(3);
     }
 }
 
