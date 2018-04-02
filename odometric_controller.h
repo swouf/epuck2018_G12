@@ -22,6 +22,8 @@
 #define ORIENTATION_ERROR_MAX	0.0175f
 #define LINEAR_ERROR_MAX		130
 
+#define PATH_BUFFER_SIZE		10
+
 typedef struct position_t{
 	int x;
 	int y;
