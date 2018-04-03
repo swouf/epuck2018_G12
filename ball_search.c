@@ -24,36 +24,39 @@ position_t ball_get_position(void)
 	pImSetBallDetectionSemaphore(&ball_spotted);
 	odCtrlAddPointToPath(0, 0, PI);
 //	pImProcessImageStart();
-	chBSemWait(&ball_spotted);
+	//chBSemWait(&ball_spotted);
 
 
 //	play_note(NOTE_A4, 100);
-	position_t epuck_position;
-	position_t ball_position;
-	uint16_t epuck_ball_distance;
-	float ball_direction = 0;
+//	position_t epuck_position;
+position_t ball_position;
+//	uint16_t epuck_ball_distance;
+//	float ball_direction = 0;
+//
+//	epuck_position = odCtrlGetPosition();
+//	epuck_ball_distance = tof_get_distance();
+//	ball_direction = epuck_position.orientation; // @suppress("Field cannot be resolved")
+//
+//	ball_position.x = epuck_ball_distance*arm_cos_f32(ball_direction);
+//	ball_position.y = epuck_ball_distance*arm_sin_f32(ball_direction);
+//	ball_position.orientation = 0;
 
-	epuck_position = odCtrlGetPosition();
-	epuck_ball_distance = tof_get_distance();
-	ball_direction = epuck_position.orientation; // @suppress("Field cannot be resolved")
-
-	ball_position.x = epuck_ball_distance*arm_cos_f32(ball_direction);
-	ball_position.y = epuck_ball_distance*arm_sin_f32(ball_direction);
-	ball_position.orientation = 0;
-
+//TEST
+		ball_position.x = 300000;
+		ball_position.y = 300000;
+		ball_position.orientation = 0;
 	return ball_position;
 }
 position_t compute_shooting_position(position_t ball_position){
 	position_t shooting_position;
-
 	int xb = ball_position.x;
 	int yb = ball_position.y;
 	int m = yb/xb;
-	int sqrt_delta = sqrt(yb^2*(2+3*m^2)+DISTANCE_EPUCK_BALL^2*(1+m^2));
 
-	shooting_position.x = (xb+2*m*yb+sqrt_delta)/(1+m^2);
+	shooting_position.x = (xb+m*yb+DISTANCE_EPUCK_BALL*sqrt(1+m^2))/(1+m^2);
+
 	if(shooting_position.x < xb)
-		shooting_position.x = (xb+2*m*yb-sqrt_delta)/(1+m^2);
+		shooting_position.x = (xb+m*yb-DISTANCE_EPUCK_BALL*sqrt(1+m^2))/(1+m^2);
 
 	shooting_position.y = m*shooting_position.x;
 	shooting_position.orientation = atan(m)+PI;

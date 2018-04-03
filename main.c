@@ -10,6 +10,7 @@
 #include <chprintf.h>
 #include <odometric_controller.h>
 #include "tof.h"
+#include <ball_search.h>
 
 //#define _DEBUG
 
@@ -101,9 +102,15 @@ int main(void)
 //	odCtrlAddPointToPath(200000, 0, 0);
 //	odCtrlAddPointToPath(200000, 200000, 0);
 //	odCtrlAddPointToPath(0, 200000, 0);
-	odCtrlAddPointToPath(0, 0, PI);
+//	odCtrlAddPointToPath(0, 0, PI);
 //    odCtrlRotateTo(PI);
-	ball_get_position();
+	position_t shooting_position;
+	position_t ball_position;
+	ball_position = ball_get_position();
+	shooting_position = compute_shooting_position(ball_position);
+	chprintf((BaseSequentialStream *)&SD3, "Coordonnées: x = %d, y = %d \n", shooting_position.x, shooting_position.y);
+	odCtrlAddPointToPath(shooting_position.x, shooting_position.y, shooting_position.orientation);
+
     odCtrlStart();
 
 
