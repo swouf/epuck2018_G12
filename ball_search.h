@@ -7,9 +7,11 @@
 
 #ifndef BALL_SEARCH_H_
 #define BALL_SEARCH_H_
+#define DISTANCE_EPUCK_BALL 70000
 #include <odometric_controller.h>
 
 position_t ball_get_position(void);
+position_t compute_shooting_position(position_t ball_position);
 
 
 #endif /* BALL_SEARCH_H_ */
