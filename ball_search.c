@@ -43,4 +43,20 @@ position_t ball_get_position(void)
 
 	return ball_position;
 }
+position_t compute_shooting_position(position_t ball_position){
+	position_t shooting_position;
 
+	int xb = ball_position.x;
+	int yb = ball_position.y;
+	int m = yb/xb;
+	int sqrt_delta = sqrt(yb^2*(2+3*m^2)+DISTANCE_EPUCK_BALL^2*(1+m^2));
+
+	shooting_position.x = (xb+2*m*yb+sqrt_delta)/(1+m^2);
+	if(shooting_position.x < xb)
+		shooting_position.x = (xb+2*m*yb-sqrt_delta)/(1+m^2);
+
+	shooting_position.y = m*shooting_position.x;
+	shooting_position.orientation = atan(m)+PI;
+
+	return shooting_position;
+}
