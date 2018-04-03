@@ -312,10 +312,10 @@ void odCtrlRotate(float alpha)
 
 	alpha -= actualPos.orientation;
 
-	while(alpha > PI)
+	for(int i = 0;alpha > PI;i++)
 	{
-		odCtrlAddPointToPath(actualPos.x, actualPos.y, PI);
-		alpha -= PI;
+		odCtrlAddPointToPath(actualPos.x, actualPos.y, ((i%2) + 1)*PI);
+		alpha -= 2*((i%2))*PI;
 	}
 
 	odCtrlAddPointToPath(actualPos.x, actualPos.y, alpha);

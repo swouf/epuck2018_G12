@@ -103,8 +103,12 @@ int main(void)
 //	odCtrlAddPointToPath(0, 200000, 0);
 //	odCtrlAddPointToPath(1, 1, PI/2);
 
-    //odCtrlStart();
-    ball_get_position();
+    odCtrlStart();
+
+    odCtrlRotate(3*PI/2);
+
+    chThdSleepMilliseconds(200);
+    //ball_get_position();
 
     while (1) {
     	chprintf((BaseSequentialStream *)&SD3, "TIME OF FLIGHT DISTANCE = %d mm\n", tof_get_distance());
