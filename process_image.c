@@ -11,6 +11,8 @@
 #include <stdbool.h>
 #include <chprintf.h>
 #include <usbcfg.h>
+#include <leds.h>
+
 
 #include <main.h>
 #include <camera/po8030.h>
@@ -122,6 +124,9 @@ static THD_FUNCTION(CaptureImage, arg) {
 	po8030_advanced_config(FORMAT_RGB565, 0, 10, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 	dcmi_enable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
+
+	set_rgb_led(LED2, 0, 0, 255);
+
 	dcmi_prepare();
 
     while(1){
@@ -135,7 +140,7 @@ static THD_FUNCTION(CaptureImage, arg) {
 }
 
 
-static THD_WORKING_AREA(waProcessImage, 1024);
+static THD_WORKING_AREA(waProcessImage, 256);
 static THD_FUNCTION(ProcessImage, arg) {
 
     chRegSetThreadName(__FUNCTION__);

@@ -97,12 +97,10 @@ int main(void)
 //	odCtrlAddPointToPath(200000, 200000, 0);
 //	odCtrlAddPointToPath(200000, 1, 0);
 //	odCtrlAddPointToPath(1, 1, PI/2);
-//
+
 //	odCtrlAddPointToPath(200000, 0, 0);
 //	odCtrlAddPointToPath(200000, 200000, 0);
 //	odCtrlAddPointToPath(0, 200000, 0);
-//	odCtrlAddPointToPath(1, 1, PI/2);
-
     odCtrlStart();
 
     odCtrlRotate(3*PI/2);
