@@ -19,15 +19,15 @@
 
 position_t ball_get_position(void)
 {
-	pImProcessImageStart();
 	BSEMAPHORE_DECL(ball_spotted, TRUE);
 
 	pImSetBallDetectionSemaphore(&ball_spotted);
-	odCtrlRotate(2*PI);
+	odCtrlAddPointToPath(0, 0, PI);
+//	pImProcessImageStart();
 	chBSemWait(&ball_spotted);
 
 
-	play_note(NOTE_A4, 100);
+//	play_note(NOTE_A4, 100);
 	position_t epuck_position;
 	position_t ball_position;
 	uint16_t epuck_ball_distance;
