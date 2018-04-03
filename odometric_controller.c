@@ -107,6 +107,8 @@ static THD_FUNCTION(odMoveForward, lengthPtr) {
 
 	//position.x += (int) (cosOrientation*linearPos);
 	//position.y += (int) (sinOrientation*linearPos);
+
+	odMoveForwardThreadPtr = NULL;
 }
 
 static THD_WORKING_AREA(waOdRotate, 256);
@@ -171,6 +173,7 @@ static THD_FUNCTION(odRotate, orientationPtr) {
 			position.orientation -= 2*PI;
 		}
 	}
+	odRotateThreadPtr = NULL;
 #ifdef _DEBUG_ROTATE
 	chprintf((BaseSequentialStream *)&SD3, "Final error = %f \n", error);
 #endif
@@ -309,7 +312,7 @@ void odCtrlMoveForward(int length)
 {
 	static int a = 0;
 	a = length;
-	if(!odMoveForwardThreadPtr) chThdWait(odMoveForwardThreadPtr);
+	if(odMoveForwardThreadPtr) chThdWait(odMoveForwardThreadPtr);
 	odMoveForwardThreadPtr = chThdCreateStatic(waOdMoveForward, sizeof(waOdMoveForward), NORMALPRIO, odMoveForward, &a);
 }
 
