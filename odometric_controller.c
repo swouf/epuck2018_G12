@@ -302,7 +302,7 @@ void odCtrlRotateTo(float orientation)
 {
 	static float a = 0;
 	a = orientation;
-	if(!odRotateThreadPtr) chThdWait(odRotateThreadPtr);
+	if(odRotateThreadPtr) chThdWait(odRotateThreadPtr);
 	odRotateThreadPtr = chThdCreateStatic(waOdRotate, sizeof(waOdRotate), NORMALPRIO, odRotate, &a);
 }
 void odCtrlMoveForward(int length)

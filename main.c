@@ -103,7 +103,7 @@ int main(void)
 	odCtrlAddPointToPath(0, 200000, 0);
 	odCtrlAddPointToPath(1, 1, PI/2);
 
-//    odCtrlStart();
+    odCtrlStart();
 
     while (1) {
     	chprintf((BaseSequentialStream *)&SD3, "TIME OF FLIGHT DISTANCE = %d mm\n", tof_get_distance());
