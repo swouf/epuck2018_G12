@@ -208,18 +208,15 @@ static THD_FUNCTION(odometricRegulator, arg) {
     {
     	if(target != pathPtr)
     	{
-#ifdef _DEBUG
 				target++;
 				if(target > &(path[PATH_BUFFER_SIZE]))
 				{
 					target = path;
 				}
+#ifdef _DEBUG
 				//chprintf((BaseSequentialStream *)&SD3, "After : target = 0x%x & pathPtr = 0x%x \n", target, pathPtr);
 				chprintf((BaseSequentialStream *)&SD3, "Target :\tx = %d\t y = %d \t orientation = %f \n", target->x, target->y, target->orientation);
 				chprintf((BaseSequentialStream *)&SD3, "Position :\tx = %d\t y = %d \t orientation = %f \n", position.x, position.y, position.orientation);
-#endif
-#ifndef _DEBUG
-    		target++;
 #endif
 
 			xd = (float) (target->x - position.x);
@@ -307,6 +304,20 @@ void odCtrlRotateTo(float orientation)
 	a = orientation;
 	if(odRotateThreadPtr) chThdWait(odRotateThreadPtr);
 	odRotateThreadPtr = chThdCreateStatic(waOdRotate, sizeof(waOdRotate), NORMALPRIO, odRotate, &a);
+}
+void odCtrlRotate(float alpha)
+{
+	position_t actualPos = odCtrlGetPosition();
+
+	alpha -= actualPos.orientation;
+
+	while(alpha > PI)
+	{
+		odCtrlAddPointToPath(actualPos.x, actualPos.y, PI);
+		alpha -= PI;
+	}
+
+	odCtrlAddPointToPath(actualPos.x, actualPos.y, alpha);
 }
 void odCtrlMoveForward(int length)
 {

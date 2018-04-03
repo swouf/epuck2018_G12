@@ -37,6 +37,8 @@ void odCtrlPause(void);
 
 void odCtrlResume(void);
 
+void odCtrlRotate(float alpha);
+
 void odCtrlAddPointToPath(int x, int y, float orientation);
 
 void odCtrlSetPosition(int x, int y, float orientation);
