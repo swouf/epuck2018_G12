@@ -24,7 +24,7 @@
 
 static uint16_t	ballWidth		= 0;
 static uint16_t	line_position	= IMAGE_BUFFER_SIZE/2;	//middle
-static PROCESS_MODE processMode	= SEARCH_BALL;
+static pIm_MODE_t processMode	= SEARCH_BALL;
 
 //semaphore
 static BSEMAPHORE_DECL(image_ready_sem, TRUE);
