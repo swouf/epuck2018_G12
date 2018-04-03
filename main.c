@@ -105,6 +105,7 @@ int main(void)
 
     odCtrlStart();
 
+
     while (1) {
     	chprintf((BaseSequentialStream *)&SD3, "TIME OF FLIGHT DISTANCE = %d mm\n", tof_get_distance());
     	chThdSleepSeconds(3);
