@@ -24,7 +24,7 @@
 
 static uint16_t	ballWidth		= 0;
 static uint16_t	line_position	= IMAGE_BUFFER_SIZE/2;	//middle
-static bool		searchingBall	=	true;
+static PROCESS_MODE processMode	= SEARCH_BALL;
 
 //semaphore
 static BSEMAPHORE_DECL(image_ready_sem, TRUE);
@@ -168,20 +168,20 @@ static THD_FUNCTION(ProcessImage, arg) {
 			image[i/2] = (uint8_t)img_buff_ptr[i]&0xF8;
 		}
 
-		if(searchingBall)
+		if(processMode == SEARCH_BALL)
 		{
 			//search for a line in the image and gets its width in pixels
 			ballWidth = pImExtractLineWidth(image);
 
 			if((ballWidth - tof_get_ball_pixel_width(tof_get_distance())) < MAX_DIFF_BALL_WIDTH)
 			{
-				searchingBall = false;
+				pImSetProcessMode(FOCUS_ON_BALL);
 				chBSemSignal(&ball_detected);
 			}
-			chBSemSignal(&ball_detected);
 		}
-		else
+		else if(processMode == FOCUS_ON_BALL);
 		{
+
 		}
 
 		// EVENTUELLEMENT À SUPPRIMER
@@ -213,9 +213,3 @@ void pImProcessImageStart(void){
 void pImSetBallDetectionSemaphore(binary_semaphore_t* sem){
 	ball_detected = sem;
 }
-
-
-
-
-
-

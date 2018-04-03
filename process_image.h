@@ -17,6 +17,11 @@
 #define MAX_DISTANCE 			25.0f
 #define MAX_DIFF_BALL_WIDTH		10
 
+enum PROCESS_MODE {
+	SEARCH_BALL,
+	FOCUS_ON_BALL,
+};
+
 void pImProcessImageStart(void);
 uint16_t pImGetLinePosition(void);
 void pImSetBallDetectionSemaphore(binary_semaphore_t* sem);
