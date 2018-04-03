@@ -6,6 +6,7 @@
  */
 
 #include <stdlib.h>
+#include "arm_math.h"
 #include "ch.h"
 #include "hal.h"
 #include <main.h>
@@ -13,10 +14,20 @@
 #include "tof.h"
 #include "ball_search.h"
 #include <odometric_controller.h>
+#include <process_image.h>
+#include <audio/play_melody.h>
 
 position_t ball_get_position(void)
 {
- //robot fait un 360°
+	pImProcessImageStart();
+	BSEMAPHORE_DECL(ball_spotted, TRUE);
+
+	pImSetBallDetectionSemaphore(&ball_spotted);
+	odCtrlRotate(2*PI);
+	chBSemWait(&ball_spotted);
+
+
+	play_note(NOTE_A4, 100);
 	position_t epuck_position;
 	position_t ball_position;
 	uint16_t epuck_ball_distance;
@@ -24,10 +35,10 @@ position_t ball_get_position(void)
 
 	epuck_position = odCtrlGetPosition();
 	epuck_ball_distance = tof_get_distance();
-	ball_direction = epuck_position.orientation;
+	ball_direction = epuck_position.orientation; // @suppress("Field cannot be resolved")
 
-	ball_position.x = epuck_ball_distance*cos(ball_direction);
-	ball_position.y = epuck_ball_distance*sin(ball_direction);
+	ball_position.x = epuck_ball_distance*arm_cos_f32(ball_direction);
+	ball_position.y = epuck_ball_distance*arm_sin_f32(ball_direction);
 	ball_position.orientation = 0;
 
 	return ball_position;

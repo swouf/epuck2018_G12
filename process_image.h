@@ -19,5 +19,6 @@
 
 void pImProcessImageStart(void);
 uint16_t pImGetLinePosition(void);
+void pImSetBallDetectionSemaphore(binary_semaphore_t* sem);
 
 #endif /* PROCESS_IMAGE_H_ */

@@ -261,6 +261,7 @@ static THD_FUNCTION(odometricRegulator, arg) {
 				chThdWait(odRotateThreadPtr);
 			}
     	}
+    	chThdSleepMilliseconds(500);
     }
 }
 

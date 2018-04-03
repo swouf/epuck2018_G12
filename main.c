@@ -93,18 +93,18 @@ int main(void)
 //				chprintf((BaseSequentialStream *)&SD3, "distance Time Of Flight = %d mm\n", tof_get_distance());
 //#endif
 
-	odCtrlAddPointToPath(1, 200000, 0);
-	odCtrlAddPointToPath(200000, 200000, 0);
-	odCtrlAddPointToPath(200000, 1, 0);
-	odCtrlAddPointToPath(1, 1, PI/2);
+//	odCtrlAddPointToPath(1, 200000, 0);
+//	odCtrlAddPointToPath(200000, 200000, 0);
+//	odCtrlAddPointToPath(200000, 1, 0);
+//	odCtrlAddPointToPath(1, 1, PI/2);
+//
+//	odCtrlAddPointToPath(200000, 0, 0);
+//	odCtrlAddPointToPath(200000, 200000, 0);
+//	odCtrlAddPointToPath(0, 200000, 0);
+//	odCtrlAddPointToPath(1, 1, PI/2);
 
-	odCtrlAddPointToPath(200000, 0, 0);
-	odCtrlAddPointToPath(200000, 200000, 0);
-	odCtrlAddPointToPath(0, 200000, 0);
-	odCtrlAddPointToPath(1, 1, PI/2);
-
-    odCtrlStart();
-
+    //odCtrlStart();
+    ball_get_position();
 
     while (1) {
     	chprintf((BaseSequentialStream *)&SD3, "TIME OF FLIGHT DISTANCE = %d mm\n", tof_get_distance());

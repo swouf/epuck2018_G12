@@ -26,6 +26,7 @@ static bool		searchingBall	=	true;
 
 //semaphore
 static BSEMAPHORE_DECL(image_ready_sem, TRUE);
+static binary_semaphore_t* ball_detected = NULL;
 
 /*
  *  Returns the line's width extracted from the image buffer given
@@ -170,7 +171,9 @@ static THD_FUNCTION(ProcessImage, arg) {
 			if((ballWidth - tof_get_ball_pixel_width(tof_get_distance())) < MAX_DIFF_BALL_WIDTH)
 			{
 				searchingBall = false;
+				chBSemSignal(&ball_detected);
 			}
+			chBSemSignal(&ball_detected);
 		}
 		else
 		{
@@ -202,4 +205,12 @@ void pImProcessImageStart(void){
 	chThdCreateStatic(waProcessImage, sizeof(waProcessImage), NORMALPRIO, ProcessImage, NULL);
 	chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO, CaptureImage, NULL);
 }
+void pImSetBallDetectionSemaphore(binary_semaphore_t* sem){
+	ball_detected = sem;
+}
+
+
+
+
+
 
