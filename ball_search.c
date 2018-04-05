@@ -63,3 +63,7 @@ position_t compute_shooting_position(position_t ball_position){
 
 	return shooting_position;
 }
+void shoot(void)
+{
+	odCtrlMoveForward(DISTANCE_EPUCK_BALL);
+}
