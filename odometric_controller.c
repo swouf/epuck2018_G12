@@ -21,6 +21,7 @@
 #include <main.h>
 #include <motors.h>
 #include <odometric_controller.h>
+#include <ball_search.h>
 
 static const float stepLength	=	WHEEL_CIRC/2000;
 
@@ -333,3 +334,8 @@ position_t odCtrlGetPosition(void)
 {
 	return position;
 }
+void shoot(void)
+{
+	odCtrlMoveForward(DISTANCE_EPUCK_BALL);
+}
+

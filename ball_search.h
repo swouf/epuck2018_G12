@@ -12,7 +12,6 @@
 
 position_t ball_get_position(void);
 position_t compute_shooting_position(position_t ball_position);
-void shoot(void);
 
 
 #endif /* BALL_SEARCH_H_ */
