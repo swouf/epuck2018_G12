@@ -110,6 +110,7 @@ int main(void)
 	shooting_position = compute_shooting_position(ball_get_position());
 	chprintf((BaseSequentialStream *)&SD3, "SHOOTING POSITION: x = %d um, y = %d um\n", shooting_position.x, shooting_position.y);
 	odCtrlAddPointToPath(shooting_position.x, shooting_position.y, shooting_position.orientation);
+	shoot();
 
     odCtrlStart();
 

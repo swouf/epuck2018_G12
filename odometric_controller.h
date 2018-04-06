@@ -49,4 +49,7 @@ void odCtrlMoveForward(int length);
 
 void odCtrlRotateTo(float orientation);
 
+void shoot(void);
+
+
 #endif /* ODOMETRIC_CONTROLLER_H_ */
