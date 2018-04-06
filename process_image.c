@@ -183,6 +183,10 @@ static THD_FUNCTION(ProcessImage, arg) {
 		{
 
 		}
+		else
+		{
+
+		}
 
 		// EVENTUELLEMENT À SUPPRIMER
 		/*
@@ -213,3 +217,8 @@ void pImProcessImageStart(void){
 void pImSetBallDetectionSemaphore(binary_semaphore_t* sem){
 	ball_detected = sem;
 }
+void pImSetMode(pIm_MODE_t mode)
+{
+	processMode = mode;
+}
+
