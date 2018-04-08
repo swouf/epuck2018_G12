@@ -13,8 +13,12 @@
 #include <usbcfg.h>
 #include <leds.h>
 
+#include <math.h>
+
 
 #include <main.h>
+
+#include <camera/dcmi_camera.h>
 #include <camera/po8030.h>
 
 #include <process_image.h>
@@ -40,7 +44,8 @@ uint16_t pImExtractLineWidth(uint8_t *buffer){
 	uint8_t stop = 0, wrong_line = 0, line_not_found = 0;
 	uint32_t mean = 0;
 
-	static uint16_t last_width = PXTOCM/GOAL_DISTANCE;
+	//static uint16_t last_width = PXTOCM/GOAL_DISTANCE;
+	static uint16_t last_width = 0;
 
 	//performs an average
 	for(uint16_t i = 0 ; i < IMAGE_BUFFER_SIZE ; i++){
@@ -100,18 +105,20 @@ uint16_t pImExtractLineWidth(uint8_t *buffer){
 	if(line_not_found){
 		begin = 0;
 		end = 0;
-		width = last_width;
+		//width = last_width;
+		width = 0;
 	}else{
 		last_width = width = (end - begin);
 		line_position = (begin + end)/2; //gives the line position.
 	}
 
-	//sets a maximum width or returns the measured width
-	if((PXTOCM/width) > MAX_DISTANCE){
-		return PXTOCM/MAX_DISTANCE;
-	}else{
-		return width;
-	}
+//	//sets a maximum width or returns the measured width
+//	if((PXTOCM/width) > MAX_DISTANCE){
+//		return PXTOCM/MAX_DISTANCE;
+//	}else{
+//		return width;
+//	}
+	return width;
 }
 
 static THD_WORKING_AREA(waCaptureImage, 256);
@@ -120,12 +127,19 @@ static THD_FUNCTION(CaptureImage, arg) {
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
 
+#ifdef _DEBUG
+	chprintf((BaseSequentialStream *)&SD3, "Launching CaptureImage ! \n");
+#endif
+
+	dcmi_start();
+	chThdSleepMilliseconds(500);
+	po8030_start();
+	chThdSleepMilliseconds(500);
+
 	//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line 10 + 11 (minimum 2 lines because reasons)
 	po8030_advanced_config(FORMAT_RGB565, 0, 10, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 	dcmi_enable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
-
-	set_rgb_led(LED2, 0, 0, 255);
 
 	dcmi_prepare();
 
@@ -140,68 +154,70 @@ static THD_FUNCTION(CaptureImage, arg) {
 }
 
 
-static THD_WORKING_AREA(waProcessImage, 256);
+static THD_WORKING_AREA(waProcessImage, 1024);
 static THD_FUNCTION(ProcessImage, arg) {
 
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
 
+#ifdef _DEBUG
+	chprintf((BaseSequentialStream *)&SD3, " Launching ProcessImage ! \n");
+#endif
+
 	uint8_t		*img_buff_ptr;
 	uint8_t		image[IMAGE_BUFFER_SIZE] = {0};
 	position_t	imagePos;
 
-	//bool send_to_matlab = true;
-
     while(1){
     	//waits until an image has been captured
+
+#ifdef _DEBUG
+		//chprintf((BaseSequentialStream *)&SD3, "Ping\n");
+#endif
+
         chBSemWait(&image_ready_sem);
+
+#ifdef _DEBUG
+		//chprintf((BaseSequentialStream *)&SD3, "Pong\n");
+#endif
 
         imagePos = odCtrlGetPosition();
 
-		  //gets the pointer to the array filled with the last image in RGB565
+		//gets the pointer to the array filled with the last image in RGB565
 		img_buff_ptr = dcmi_get_last_image_ptr();
 
+		/*
 		//Extracts only the red pixels
 		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; i+=2){
 			//extracts first 5bits of the first byte
 			//takes nothing from the second byte
 			image[i/2] = (uint8_t)img_buff_ptr[i]&0xF8;
 		}
+		*/
+
+#ifdef _DEBUG
+		uint16_t testColor = 0b01100110110011;
+#endif
+
+		pImExtractViolet((uint16_t*)img_buff_ptr, image, IMAGE_BUFFER_SIZE);
 
 		if(processMode == SEARCH_BALL)
 		{
 			//search for a line in the image and gets its width in pixels
-			ballWidth = pImExtractLineWidth(image);
+			ballWidth					= pImExtractLineWidth(image);
+			uint16_t expectedBallWidth	=	tof_get_ball_pixel_width(tof_get_distance());
 
-			if((ballWidth - tof_get_ball_pixel_width(tof_get_distance())) < MAX_DIFF_BALL_WIDTH)
+			if(abs(ballWidth - expectedBallWidth) < MAX_DIFF_BALL_WIDTH)
 			{
-				pImSetProcessMode(FOCUS_ON_BALL);
-				chBSemSignal(&ball_detected);
+				//pImSetMode(FOCUS_ON_BALL);
+#ifdef _DEBUG
+				chprintf((BaseSequentialStream *)&SD3, "Color : %x\n", img_buff_ptr[line_position]);
+				chprintf((BaseSequentialStream *)&SD3, "ballWidth = %d \t expoctedBallWidth = %d\n", ballWidth, expectedBallWidth);
+				chprintf((BaseSequentialStream *)&SD3, "Ball Detected !!!\n");
+#endif
+				//chBSemSignal(ball_detected);
 			}
 		}
-		else if(processMode == FOCUS_ON_BALL);
-		{
-
-		}
-		else
-		{
-
-		}
-
-		// EVENTUELLEMENT À SUPPRIMER
-		/*
-		//converts the width into a distance between the robot and the camera
-		if(lineWidth){
-			distance_cm = PXTOCM/lineWidth;
-		}
-
-		if(send_to_matlab){
-			//sends to matlab the image
-			SendUint8ToMatlab(image, IMAGE_BUFFER_SIZE);
-		}
-		//invert the bool
-		send_to_matlab = !send_to_matlab;
-		*/
     }
 }
 
@@ -213,6 +229,9 @@ uint16_t pImGetLinePosition(void){
 void pImProcessImageStart(void){
 	chThdCreateStatic(waProcessImage, sizeof(waProcessImage), NORMALPRIO, ProcessImage, NULL);
 	chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO, CaptureImage, NULL);
+#ifdef _DEBUG
+	//chprintf((BaseSequentialStream *)&SD3, "ProcessImage launched !\nCaptureImage launched ! \n");
+#endif
 }
 void pImSetBallDetectionSemaphore(binary_semaphore_t* sem){
 	ball_detected = sem;
@@ -220,5 +239,19 @@ void pImSetBallDetectionSemaphore(binary_semaphore_t* sem){
 void pImSetMode(pIm_MODE_t mode)
 {
 	processMode = mode;
+}
+void pImExtractViolet(uint16_t* input, uint8_t* output, unsigned int size)
+{
+	unsigned int basisChangeCoeff[3] = {8837, 0 , 9102};
+	unsigned int temp = 0;
+
+	for(int i = 0;i<size;i++)
+	{
+		temp =	((input[i]&0xF800)>>1)*basisChangeCoeff[0] +\
+					((input[i]&0x7E0)<<5)*basisChangeCoeff[1] +\
+					((input[i]&0x1F)<<10)*basisChangeCoeff[2];
+		output[i] = temp>>10;
+	}
+
 }
 

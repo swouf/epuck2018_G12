@@ -48,7 +48,6 @@ static void timer12_start(void){
 
 int main(void)
 {
-
     halInit();
     chSysInit();
     mpu_init();
@@ -105,22 +104,22 @@ int main(void)
 //	odCtrlAddPointToPath(0, 0, PI);
 //    odCtrlRotateTo(PI);
 
+    odCtrlStart();
 
 	position_t shooting_position;
 	shooting_position = compute_shooting_position(ball_get_position());
-	chprintf((BaseSequentialStream *)&SD3, "SHOOTING POSITION: x = %d um, y = %d um\n", shooting_position.x, shooting_position.y);
-	odCtrlAddPointToPath(shooting_position.x, shooting_position.y, shooting_position.orientation);
-	shoot();
+	chprintf((BaseSequentialStream *)&SD3, "SHOOTING POSITION: x = %d um, y = %d um, orientation = %f\n", shooting_position.x, shooting_position.y, shooting_position.orientation);
+	//odCtrlAddPointToPath(shooting_position.x, shooting_position.y, shooting_position.orientation);
+	//odCtrlAddPointToPath(100000, 100000, shooting_position.orientation);
+	//shoot();
 
-    odCtrlStart();
-
-    odCtrlRotate(3*PI/2);
+    //odCtrlRotate(3*PI/2);
 
     chThdSleepMilliseconds(200);
     //ball_get_position();
 
     while (1) {
-    	chprintf((BaseSequentialStream *)&SD3, "TIME OF FLIGHT DISTANCE = %d mm\n", tof_get_distance());
+    	//chprintf((BaseSequentialStream *)&SD3, "TIME OF FLIGHT DISTANCE = %d mm\n", tof_get_distance());
     	chThdSleepSeconds(3);
     }
 }

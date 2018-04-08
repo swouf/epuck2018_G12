@@ -13,6 +13,8 @@ extern "C" {
 #define EPUCK_CIRC 166.504f
 #define PI 3.1415927410125732421875f
 
+#define DISTANCE_EPUCK_BALL 70000
+
 
 /** Robot wide IPC bus. */
 extern messagebus_t bus;

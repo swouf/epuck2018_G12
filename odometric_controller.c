@@ -21,7 +21,6 @@
 #include <main.h>
 #include <motors.h>
 #include <odometric_controller.h>
-#include <ball_search.h>
 
 static const float stepLength	=	WHEEL_CIRC/2000;
 
@@ -183,7 +182,7 @@ static THD_FUNCTION(odRotate, orientationPtr) {
 static THD_WORKING_AREA(waOdometricRegulator, 1024);
 static THD_FUNCTION(odometricRegulator, arg) {
 
-#ifdef _DEBUG
+#ifdef _DEBUG_PATH
 				chprintf((BaseSequentialStream *)&SD3, "ODOMETRIC REGULATOR\n");
 #endif
 
@@ -214,7 +213,7 @@ static THD_FUNCTION(odometricRegulator, arg) {
 				{
 					target = path;
 				}
-#ifdef _DEBUG
+#ifdef _DEBUG_PATH
 				//chprintf((BaseSequentialStream *)&SD3, "After : target = 0x%x & pathPtr = 0x%x \n", target, pathPtr);
 				chprintf((BaseSequentialStream *)&SD3, "Target :\tx = %d\t y = %d \t orientation = %f \n", target->x, target->y, target->orientation);
 				chprintf((BaseSequentialStream *)&SD3, "Position :\tx = %d\t y = %d \t orientation = %f \n", position.x, position.y, position.orientation);
@@ -223,7 +222,7 @@ static THD_FUNCTION(odometricRegulator, arg) {
 			xd = (float) (target->x - position.x);
 			yd = (float) (target->y - position.y);
 
-#ifdef _DEBUG
+#ifdef _DEBUG_PATH
 				chprintf((BaseSequentialStream *)&SD3, "xd = %f , yd = %f\n float length^2 = %f\n", xd, yd, (float)((xd*xd)+(yd*yd)));
 #endif
 
@@ -236,7 +235,7 @@ static THD_FUNCTION(odometricRegulator, arg) {
 				alpha += PI;
 			}
 
-#ifdef _DEBUG
+#ifdef _DEBUG_PATH
 				chprintf((BaseSequentialStream *)&SD3, "ratio = %f\t alpha = %f\n",ratio, alpha);
 #endif
 
@@ -289,7 +288,7 @@ void odCtrlAddPointToPath(int x, int y, float orientation){
 
 	pathPtr = a;
 
-#ifdef _DEBUG
+#ifdef _DEBUG_PATH
 	//chSysLock();
 				chprintf((BaseSequentialStream *)&SD3, "Point added to path :\n \
 x = %d\t y = %d\t , orientation = %f\n", \
@@ -336,6 +335,22 @@ position_t odCtrlGetPosition(void)
 }
 void shoot(void)
 {
-	odCtrlMoveForward(DISTANCE_EPUCK_BALL);
+	float cosOrientation		=	arm_cos_f32(position.orientation);
+	float sinOrientation		=	arm_sin_f32(position.orientation);
+	int			motorDispl = 0;
+	uint32_t	motorPos = left_motor_get_pos();
+
+	left_motor_set_speed(MOTOR_SPEED_LIMIT);
+	right_motor_set_speed(MOTOR_SPEED_LIMIT);
+
+	chThdSleepMilliseconds(DISTANCE_EPUCK_BALL/(stepLength*MOTOR_SPEED_LIMIT));
+
+	left_motor_set_speed(0);
+	right_motor_set_speed(0);
+
+	motorDispl = left_motor_get_pos()-motorPos;
+
+	position.x += (int) (cosOrientation*motorDispl);
+	position.y += (int) (sinOrientation*motorDispl);
 }
 

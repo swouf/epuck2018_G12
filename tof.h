@@ -8,7 +8,7 @@
 #ifndef TOF_H_
 #define TOF_H_
 
-#define BALL_SIZE 5
+#define BALL_SIZE 50
 #define LENS_DIAMETER_IN_PIXELS 772.55f
 
 void tof_init(void);

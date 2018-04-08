@@ -25,5 +25,7 @@ typedef enum {
 void pImProcessImageStart(void);
 uint16_t pImGetLinePosition(void);
 void pImSetBallDetectionSemaphore(binary_semaphore_t* sem);
+void pImSetMode(pIm_MODE_t mode);
+void pImExtractViolet(uint16_t* input, uint8_t* output, unsigned int size);
 
 #endif /* PROCESS_IMAGE_H_ */

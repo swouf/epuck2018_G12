@@ -9,6 +9,7 @@
 #include "arm_math.h"
 #include "ch.h"
 #include "hal.h"
+#include <chprintf.h>
 #include <main.h>
 #include "sensors/VL53L0X/VL53L0X.h"
 #include "tof.h"
@@ -22,14 +23,19 @@ position_t ball_get_position(void)
 	BSEMAPHORE_DECL(ball_spotted, TRUE);
 
 	pImSetBallDetectionSemaphore(&ball_spotted);
-	odCtrlAddPointToPath(0, 0, PI);
-//	pImProcessImageStart();
+
+	pImProcessImageStart();
+
+#ifdef _DEBUG
+	chprintf((BaseSequentialStream *)&SD3, "pImProcessImageStart OK !\n");
+#endif
+
 	//chBSemWait(&ball_spotted);
 
 
 //	play_note(NOTE_A4, 100);
 //	position_t epuck_position;
-position_t ball_position;
+	position_t ball_position;
 //	uint16_t epuck_ball_distance;
 //	float ball_direction = 0;
 //
