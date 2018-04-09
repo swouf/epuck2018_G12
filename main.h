@@ -15,6 +15,10 @@ extern "C" {
 
 #define DISTANCE_EPUCK_BALL 70000
 
+#define EPUCK_X_START 300000
+#define EPUCK_Y_START 0
+#define EPUCK_ORIENTATION_START 0
+
 
 /** Robot wide IPC bus. */
 extern messagebus_t bus;
