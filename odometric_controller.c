@@ -297,7 +297,12 @@ x = %d\t y = %d\t , orientation = %f\n", \
 #endif
 }
 
-void odCtrlSetPosition(int x, int y, float orientation);
+void odCtrlSetPosition(int x, int y, float orientation)
+{
+	position.x = x;
+	position.y = y;
+	position.orientation = orientation;
+}
 
 void odCtrlRotateTo(float orientation)
 {
