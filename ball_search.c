@@ -33,24 +33,28 @@ position_t ball_get_position(void)
 	//chBSemWait(&ball_spotted);
 
 
-//	play_note(NOTE_A4, 100);
-//	position_t epuck_position;
+	position_t epuck_position;
 	position_t ball_position;
-//	uint16_t epuck_ball_distance;
-//	float ball_direction = 0;
-//
-//	epuck_position = odCtrlGetPosition();
-//	epuck_ball_distance = tof_get_distance();
-//	ball_direction = epuck_position.orientation; // @suppress("Field cannot be resolved")
-//
-//	ball_position.x = epuck_ball_distance*arm_cos_f32(ball_direction);
-//	ball_position.y = epuck_ball_distance*arm_sin_f32(ball_direction);
-//	ball_position.orientation = 0;
+	uint16_t epuck_ball_distance;
+	float ball_direction = 0;
+
+//	odCtrlSetPosition(EPUCK_X_START, EPUCK_Y_START, EPUCK_ORIENTATION_START);
+	epuck_position.x = EPUCK_X_START;
+	epuck_position.y = EPUCK_Y_START;
+	epuck_position.orientation = EPUCK_ORIENTATION_START;
+
+	epuck_ball_distance = tof_get_distance();
+	ball_direction = epuck_position.orientation; // @suppress("Field cannot be resolved")
+
+	ball_position.x = epuck_position.x - epuck_ball_distance*arm_cos_f32(PI-ball_direction);
+	ball_position.y = epuck_ball_distance*arm_sin_f32(PI-ball_direction) - epuck_position.y;
+	ball_position.orientation = 0;
 
 //TEST
-		ball_position.x = 300000;
-		ball_position.y = 300000;
-		ball_position.orientation = 0;
+//
+//		ball_position.x = 300000;
+//		ball_position.y = 300000;
+//		ball_position.orientation = 0;
 	return ball_position;
 }
 position_t compute_shooting_position(position_t ball_position){
