@@ -297,7 +297,12 @@ x = %d\t y = %d\t , orientation = %f\n", \
 #endif
 }
 
-void odCtrlSetPosition(int x, int y, float orientation){};
+void odCtrlSetPosition(int x, int y, float orientation)
+{
+	position.x = x;
+	position.y = y;
+	position.orientation = orientation;
+}
 
 void odCtrlRotateTo(float orientation)
 {
@@ -354,3 +359,4 @@ void shoot(void)
 	position.y += (int) (sinOrientation*motorDispl);
 }
 
+>>>>>>> 3610e9d20eac8fa66c567870a75ebf06d2a53a96
