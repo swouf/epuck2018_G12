@@ -38,6 +38,15 @@ static binary_semaphore_t* ball_detected = NULL;
  *  Returns the line's width extracted from the image buffer given
  *  Returns 0 if line not found
  */
+
+void SendUint8ToMatlab(uint8_t* data, uint16_t size)
+{
+	chSequentialStreamWrite((BaseSequentialStream *)&SDU1, (uint8_t*)"S", 1);
+	chSequentialStreamWrite((BaseSequentialStream *)&SDU1, (uint8_t*)&size, sizeof(uint16_t));
+	chSequentialStreamWrite((BaseSequentialStream *)&SDU1, (uint8_t*)data, size);
+	chSequentialStreamWrite((BaseSequentialStream *)&SDU1, (uint8_t*)"EOF\0", 4);
+}
+
 uint16_t pImExtractLineWidth(uint8_t *buffer){
 
 	uint16_t i = 0, begin = 0, end = 0, width = 0;
@@ -60,7 +69,7 @@ uint16_t pImExtractLineWidth(uint8_t *buffer){
 		{
 			//the slope must at least be WIDTH_SLOPE wide and is compared
 		    //to the mean of the image
-		    if(buffer[i] > mean && buffer[i+WIDTH_SLOPE] < mean)
+		    if(buffer[i] < mean && buffer[i+WIDTH_SLOPE] > mean)
 		    {
 		        begin = i;
 		        stop = 1;
@@ -74,7 +83,7 @@ uint16_t pImExtractLineWidth(uint8_t *buffer){
 
 		    while(stop == 0 && i < IMAGE_BUFFER_SIZE)
 		    {
-		        if(buffer[i] > mean && buffer[i-WIDTH_SLOPE] < mean)
+		        if(buffer[i] < mean && buffer[i-WIDTH_SLOPE] > mean)
 		        {
 		            end = i;
 		            stop = 1;
@@ -137,7 +146,7 @@ static THD_FUNCTION(CaptureImage, arg) {
 	chThdSleepMilliseconds(500);
 
 	//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line 10 + 11 (minimum 2 lines because reasons)
-	po8030_advanced_config(FORMAT_RGB565, 0, 10, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+	po8030_advanced_config(FORMAT_RGB565, 0, 300, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 	dcmi_enable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 
@@ -170,16 +179,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 
     while(1){
     	//waits until an image has been captured
-
-#ifdef _DEBUG
-		//chprintf((BaseSequentialStream *)&SD3, "Ping\n");
-#endif
-
         chBSemWait(&image_ready_sem);
-
-#ifdef _DEBUG
-		//chprintf((BaseSequentialStream *)&SD3, "Pong\n");
-#endif
 
         imagePos = odCtrlGetPosition();
 
@@ -196,23 +196,35 @@ static THD_FUNCTION(ProcessImage, arg) {
 		*/
 
 #ifdef _DEBUG
+		static int t = 1;
+		if(t)
+		{
 		uint16_t testColor = 0b01100110110011;
+		uint8_t	testViolet = 0;
+		pImExtractViolet(&testColor,& testViolet, 1);
+
+		chprintf((BaseSequentialStream *)&SD3, "TestViolet = %x\n", testViolet);
+		t=0;
+		}
 #endif
 
 		pImExtractViolet((uint16_t*)img_buff_ptr, image, IMAGE_BUFFER_SIZE);
+
+		SendUint8ToMatlab(image, IMAGE_BUFFER_SIZE);
 
 		if(processMode == SEARCH_BALL)
 		{
 			//search for a line in the image and gets its width in pixels
 			ballWidth					= pImExtractLineWidth(image);
-			uint16_t expectedBallWidth	=	tof_get_ball_pixel_width(tof_get_distance());
+			uint16_t distance			= tof_get_distance();
+			uint16_t expectedBallWidth	= tof_get_ball_pixel_width(distance);
 
-			if(abs(ballWidth - expectedBallWidth) < MAX_DIFF_BALL_WIDTH)
+			if((abs(ballWidth - expectedBallWidth) < MAX_DIFF_BALL_WIDTH) | (distance < MAX_DISTANCE))
 			{
 				//pImSetMode(FOCUS_ON_BALL);
 #ifdef _DEBUG
 				chprintf((BaseSequentialStream *)&SD3, "Color : %x\n", img_buff_ptr[line_position]);
-				chprintf((BaseSequentialStream *)&SD3, "ballWidth = %d \t expoctedBallWidth = %d\n", ballWidth, expectedBallWidth);
+				chprintf((BaseSequentialStream *)&SD3, "ballWidth = %d \t expectedBallWidth = %d\t distance = %d \n", ballWidth, expectedBallWidth, distance);
 				chprintf((BaseSequentialStream *)&SD3, "Ball Detected !!!\n");
 #endif
 				//chBSemSignal(ball_detected);
@@ -240,18 +252,32 @@ void pImSetMode(pIm_MODE_t mode)
 {
 	processMode = mode;
 }
+#define MAX_COLOR_ERROR 20
 void pImExtractViolet(uint16_t* input, uint8_t* output, unsigned int size)
 {
 	unsigned int basisChangeCoeff[3] = {8837, 0 , 9102};
 	unsigned int temp = 0;
 
+	int R = 0;
+	int G = 0;
+	int B = 0;
+
 	for(int i = 0;i<size;i++)
 	{
-		temp =	((input[i]&0xF800)>>1)*basisChangeCoeff[0] +\
-					((input[i]&0x7E0)<<5)*basisChangeCoeff[1] +\
-					((input[i]&0x1F)<<10)*basisChangeCoeff[2];
-		output[i] = temp>>10;
-	}
+		R = ((input[i]&0xF800)>>1);
+		G = ((input[i]&0x7E0)<<5);
+		B = ((input[i]&0x1F)<<10);
 
+		temp =	(R+G+B)>>10;
+
+		R = R/temp;
+		G = G/temp;
+		B = B/temp;
+
+		if((abs(R-250)<MAX_COLOR_ERROR) & (abs(G-280)<MAX_COLOR_ERROR) & (abs(B-480)<MAX_COLOR_ERROR))
+		{
+			output[i] = 200;
+		}
+	}
 }
 
