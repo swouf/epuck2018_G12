@@ -358,5 +358,3 @@ void shoot(void)
 	position.x += (int) (cosOrientation*motorDispl);
 	position.y += (int) (sinOrientation*motorDispl);
 }
-
->>>>>>> 3610e9d20eac8fa66c567870a75ebf06d2a53a96
