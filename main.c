@@ -64,45 +64,6 @@ int main(void)
     timer12_start();
 #endif
 
-    /*float test = 2.0;
-    volatile uint16_t time = 0;
-    chSysLock(); //reset the timer counter
-    GPTD12.tim->CNT = 0;
-
-    for(int i = 0; i<4;i++)
-    {
-    	test = atan(test);
-    }
-
-    time = GPTD12.tim->CNT;
-    chSysUnlock();
-
-    float penis = 12.3;
-    uint16_t gpenis = (uint16_t) penis;
-
-    while (1) {
-    	chprintf((BaseSequentialStream *)&SDU1, "gpenis=%d\n", gpenis);
-    	chprintf((BaseSequentialStream *)&SD3, "gpenis=%d\n", gpenis);
-    	chprintf((BaseSequentialStream *)&SDU1, "time=%dus\n test = %f\n", time, test);
-    	chprintf((BaseSequentialStream *)&SD3, "time=%dus\n test = %f\n", time, test);
-    	chThdSleepMilliseconds(1000);
-
-    }*/
-
-//#ifdef _DEBUG
-//				chprintf((BaseSequentialStream *)&SD3, "distance Time Of Flight = %d mm\n", tof_get_distance());
-//#endif
-
-//	odCtrlAddPointToPath(1, 200000, 0);
-//	odCtrlAddPointToPath(200000, 200000, 0);
-//	odCtrlAddPointToPath(200000, 1, 0);
-//	odCtrlAddPointToPath(1, 1, PI/2);
-
-//	odCtrlAddPointToPath(200000, 0, 0);
-//	odCtrlAddPointToPath(200000, 200000, 0);
-//	odCtrlAddPointToPath(0, 200000, 0);
-//	odCtrlAddPointToPath(0, 0, PI);
-//    odCtrlRotateTo(PI);
 
     odCtrlStart();
 
