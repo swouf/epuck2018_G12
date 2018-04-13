@@ -17,7 +17,7 @@
  * */
 void tof_init(void);
 /*
- * @brief By using the time-of-flight sensor, it computes the distance between the e-puck and the object facing the sensor
+ * @brief Computes the distance between the e-puck and the object facing the sensor by using the time-of-flight sensor
  * @return The distance between the e-puck and the object in front of the sensor
  * */
 uint16_t tof_get_distance(void);

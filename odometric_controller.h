@@ -47,7 +47,7 @@ void odCtrlResume(void);
 void odCtrlRotate(float alpha);
 /*
  * @brief Makes the e-puck move to a point in the XY plane and makes it rotate to have the orientation desired
- * @param The XY coordinates and the orientation
+ * @param The XY target coordinates and the orientation
  * */
 void odCtrlAddPointToPath(int x, int y, float orientation);
 /*
@@ -61,8 +61,8 @@ void odCtrlSetPosition(int x, int y, float orientation);
  * */
 position_t odCtrlGetPosition(void);
 /*
- * @brief Makes the e-puck to move forward
- * @param The distance which the e-puck travels
+ * @brief Makes the e-puck move forward for a distance
+ * @param The distance the e-puck travels
  * */
 void odCtrlMoveForward(int length);
 

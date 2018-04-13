@@ -10,12 +10,12 @@
 
 #include <odometric_controller.h>
 /*
- * @brief By using the sensors, the function compute the position of the ball
+ * @brief Computes the position of the ball by using the sensor
  * @return The position of the ball
  * */
 position_t ball_get_position(void);
 /*
- * @brief By using the position of the ball, the function computes the shooting position of the e-puck
+ * @brief Computes the shooting position of the e-puck by knowing the position of the ball
  * @param The position of the ball
  * @return The shooting position of the e-puck
  * */
