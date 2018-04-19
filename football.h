@@ -9,6 +9,9 @@
 #define FOOTBALL_H_
 
 static void serial_start(void);
+/*
+ * @brief Make the e-puck shoot the ball in the target/Le e-puck effectue le tir dans le but
+ * */
 void play(void);
 
 
