@@ -15,7 +15,7 @@
 
 #include <usbcfg.h>
 
-#include <math.h>
+#include <arm_math.h>
 
 #include <main.h>
 
@@ -39,6 +39,7 @@ static binary_semaphore_t* ball_detected = NULL;
 // Functions prototypes
 static uint16_t pImExtractLineWidth(uint8_t *buffer);
 static void pImExtractGreen(uint16_t* input, uint8_t* output, unsigned int size);
+static uint32_t pImCompareColors(unsigned int color, unsigned int colorRef);
 
 /**********		THREADS		**********/
 
@@ -113,11 +114,11 @@ static THD_FUNCTION(ProcessImage, arg) {
 		static int t = 1;
 		if(t)
 		{
-		uint16_t testColor[4] = {0x18E6, 0x18E8, 0x6332, 0x426E};
-		uint8_t	testViolet[4] = {0};
-		pImExtractViolet(&testColor, &testViolet, 4);
+		uint16_t testColor[5] = {0x18E6, 0x18E8, 0x6332, 0x426E, 0x855F2F};
+		uint8_t	testViolet[5] = {0};
+		pImExtractViolet(&testColor, &testViolet, 5);
 
-		for(int i = 0; i<4;i++)
+		for(int i = 0; i<5;i++)
 		{
 			chprintf((BaseSequentialStream *)&SD3, "TestViolet = %x\n", testViolet[i]);
 		}
@@ -278,25 +279,19 @@ void pImExtractViolet(uint16_t* input, uint8_t* output, unsigned int size)
 	//unsigned int basisChangeCoeff[3] = {8837, 0 , 9102};
 	unsigned int temp = 0;
 
-	unsigned int R = 0;
-	unsigned int G = 0;
-	unsigned int B = 0;
+	unsigned int RGB = 0;
+	//unsigned int G = 0;
+	//unsigned int B = 0;
 
 	for(int i = 0;i<size;i++)
 	{
-		R = ((input[i]&0xF800)>>1);
-		G = ((input[i]&0x7E0)<<4);
-		B = ((input[i]&0x1F)<<9);
+		RGB =	((input[i]&0xF800)<<5) +\
+				((input[i]&0x7E0)<<3) +\
+				((input[i]&0x1F));
 
-		temp =	(R+G+B)>>10;
+		chprintf((BaseSequentialStream *)&SD3, "cosAlpha = %d\n",pImCompareColors(RGB, 0x5E6291));
 
-		R = R/temp;
-		G = G/temp;
-		B = B/temp;
-
-		chprintf((BaseSequentialStream *)&SD3, "%d\t%d\t%d\t%d\n", i, R, G, B);
-
-		if((abs(R-250)<MAX_COLOR_ERROR) & (abs(G-280)<MAX_COLOR_ERROR) & (abs(B-480)<MAX_COLOR_ERROR))
+		if(pImCompareColors(RGB, 0x5E6291) < 16384)
 		{
 			//chprintf((BaseSequentialStream *)&SD3, "R = %d\t G = %d\t B = %d\n", R, G, B);
 			output[i] = 0xFF;
@@ -322,20 +317,66 @@ static void pImExtractGreen(uint16_t* input, uint8_t* output, unsigned int size)
 		output[i] = 0xFF-(G>>10);
 	}
 }
-static unsigned int pImCompareColors(unsigned int color, unsigned int colorRef)
+static uint32_t pImCompareColors(unsigned int color, unsigned int colorRef)
 {
-	static unsigned int lastColorRef = 0;
+	static uint32_t lastColorRef	= 0;
 
-	static unsigned int magnColorRef	=	0;
+	static uint32_t magnColorRef	=	0;
 
-	uint8_t colorRefPtr	= (&colorRef)+1;
-	uint8_t colorPtr	= (&color)+1;
+	uint8_t *colorRefPtr	=	(&colorRef)+1;
+	uint8_t *colorPtr	=	(&color)+1;
+	q31_t temp			=	0;
+	uint32_t magnColor	=	0;
+	uint32_t dotProduct	=	0;
+	uint32_t cosAlpha	=	0;
 
+
+	// Si la couleur est la même qu'au dernier appel, ne calcule pas sa norme
 	if(lastColorRef != colorRef)
 	{
+		// CALCUL DE LA NORME
+
+		// Somme des carrés (à optimiser)
 		magnColorRef	=	colorRefPtr[0]*colorRefPtr[0] +\
 							colorRefPtr[1]*colorRefPtr[1] +\
 							colorRefPtr[2]*colorRefPtr[2];
+
+		// Division par 2^18
+		temp = magnColorRef<<13;
+
+		arm_sqrt_q31(temp,&temp);
+
+		// Multiplication par 2^9 pour obtenir un Q16.16
+		magnColorRef	=	temp>>6;
+
+		lastColorRef = magnColorRef;
 	}
+
+	// CALCUL DE LA NORME
+
+	// Somme des carrés (à optimiser)
+	magnColor	=	colorPtr[0]*colorPtr[0] +\
+			colorPtr[1]*colorPtr[1] +\
+			colorPtr[2]*colorPtr[2];
+
+	// Division par 2^18
+	temp = magnColor<<13;
+
+	arm_sqrt_q31(temp,&temp);
+
+	// Multiplication par 2^9 pour obtenir un Q16.16
+	magnColor	=	temp>>6;
+
+	// CALCUL DU PRODUIT SCALAIRE
+
+	dotProduct =	colorRefPtr[0]*colorPtr[0] +\
+					colorRefPtr[1]*colorPtr[1] +\
+					colorRefPtr[2]*colorPtr[2];
+
+	dotProduct =	dotProduct<<16;
+
+	cosAlpha	=	dotProduct/(magnColorRef*magnColor);
+
+	return cosAlpha;
 
 }
