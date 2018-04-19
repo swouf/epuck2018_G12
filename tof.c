@@ -16,10 +16,7 @@
 
 void tof_init(void)
 {
-	//VL53L0X_init(&device);
 	VL53L0X_start();
-//	VL53L0X_configAccuracy(&device, VL53L0X_DEFAULT_MODE);
-//	VL53L0X_startMeasure(&device, VL53L0X_DEVICEMODE_CONTINUOUS_RANGING);
 }
 
 uint16_t tof_get_distance(void)
