@@ -8,8 +8,8 @@
 #ifndef TOF_H_
 #define TOF_H_
 
-#define BALL_SIZE 50
-#define LENS_DIAMETER_IN_PIXELS 772.55f
+#define BALL_SIZE 66
+#define LENS_DIAMETER_IN_PIXELS 1445
 
 void tof_init(void);
 uint16_t tof_get_distance(void);

@@ -14,8 +14,8 @@
 #define MIN_LINE_WIDTH			40
 #define PXTOCM					1570.0f //experimental value
 #define GOAL_DISTANCE 			10.0f
-#define MAX_DISTANCE 			100
-#define MAX_DIFF_BALL_WIDTH		10
+#define MAX_DISTANCE 			1000
+#define MAX_DIFF_BALL_WIDTH		50
 
 typedef enum {
 	SEARCH_BALL,
