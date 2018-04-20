@@ -1,5 +1,5 @@
 /**
- * \file	process_image.c
+ *  \file	process_image.c
  *
  *  \date	april 2018
  *  \author	Jérémy Jayet (jeremy.jayet@epfl.ch)
@@ -39,7 +39,7 @@ static binary_semaphore_t* ball_detected = NULL;
 // Functions prototypes
 static uint16_t pImExtractLineWidth(uint8_t *buffer);
 static void pImExtractGreen(uint16_t* input, uint8_t* output, unsigned int size);
-static uint32_t pImCompareColors(unsigned int color, unsigned int colorRef);
+static uint8_t pImCompareColors(pixel_t color, pixel_t colorRef);
 
 /**********		THREADS		**********/
 
@@ -60,8 +60,8 @@ static THD_FUNCTION(CaptureImage, arg) {
 
 	//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line 10 + 11 (minimum 2 lines because reasons)
 	po8030_advanced_config(FORMAT_RGB565, 0, 300, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
-	po8030_set_awb(0);
-	po8030_set_rgb_gain(0, 0x48, 0);
+	//po8030_set_awb(0);
+	//po8030_set_rgb_gain(0, 0x48, 0);
 	dcmi_enable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 
@@ -126,8 +126,8 @@ static THD_FUNCTION(ProcessImage, arg) {
 		}
 #endif
 
-		//pImExtractViolet((uint16_t*)img_buff_ptr, image, IMAGE_BUFFER_SIZE);
-		pImExtractGreen((uint16_t*)img_buff_ptr, image, IMAGE_BUFFER_SIZE);
+		pImExtractViolet((uint16_t*)img_buff_ptr, image, IMAGE_BUFFER_SIZE);
+		//pImExtractGreen((uint16_t*)img_buff_ptr, image, IMAGE_BUFFER_SIZE);
 		//
 		SendUint8ToMatlab(image, IMAGE_BUFFER_SIZE);
 
@@ -280,26 +280,36 @@ void pImExtractViolet(uint16_t* input, uint8_t* output, unsigned int size)
 	unsigned int temp = 0;
 
 	unsigned int RGB = 0;
+	pixel_t	pixel;
+	pixel_t pixelRef;
+
+	pixelRef.r = 198;
+	pixelRef.g = 237;
+	pixelRef.b = 44;
+	//pixelRef.r = 96;
+	//pixelRef.g = 100;
+	//pixelRef.b = 147;
 	//unsigned int G = 0;
 	//unsigned int B = 0;
 
 	for(int i = 0;i<size;i++)
 	{
-		RGB =	((input[i]&0xF800)<<5) +\
-				((input[i]&0x7E0)<<3) +\
-				((input[i]&0x1F));
+		pixel.b		= ((input[i]&0x1F))*8;
+		pixel.r		= ((input[i]&0xF800)>>11)*8;
+		pixel.g		= ((input[i]&0x7E0)>>5)*4;
 
-		chprintf((BaseSequentialStream *)&SD3, "cosAlpha = %d\n",pImCompareColors(RGB, 0x5E6291));
+		//chprintf((BaseSequentialStream *)&SD3, "cosAlpha = %d\n",pImCompareColors(pixel, pixelRef));
 
-		if(pImCompareColors(RGB, 0x5E6291) < 16384)
-		{
-			//chprintf((BaseSequentialStream *)&SD3, "R = %d\t G = %d\t B = %d\n", R, G, B);
-			output[i] = 0xFF;
-		}
-		else
-		{
-			output[i] = 0;
-		}
+//		if(pImCompareColors(pixel, pixelRef) > 240)
+//		{
+//			//chprintf((BaseSequentialStream *)&SD3, "R = %d\t G = %d\t B = %d\n", R, G, B);
+//			output[i] = 0xFF;
+//		}
+//		else
+//		{
+//			output[i] = 0;
+//		}
+		output[i] = pImCompareColors(pixel, pixelRef);
 	}
 }
 static void pImExtractGreen(uint16_t* input, uint8_t* output, unsigned int size)
@@ -317,65 +327,77 @@ static void pImExtractGreen(uint16_t* input, uint8_t* output, unsigned int size)
 		output[i] = 0xFF-(G>>10);
 	}
 }
-static uint32_t pImCompareColors(unsigned int color, unsigned int colorRef)
+void pImTest(uint32_t t)
 {
-	static uint32_t lastColorRef	= 0;
+	t = t;
+}
+static uint8_t pImCompareColors(pixel_t color, pixel_t colorRef)
+{
+	static pixel_t lastColorRef;
 
-	static uint32_t magnColorRef	=	0;
+	static uint32_t magnColorRef		=	0;
 
-	uint8_t *colorRefPtr	=	(&colorRef)+1;
-	uint8_t *colorPtr	=	(&color)+1;
-	q31_t temp			=	0;
-	uint32_t magnColor	=	0;
-	uint32_t dotProduct	=	0;
-	uint32_t cosAlpha	=	0;
+	q31_t temp							=	0;
+	uint32_t magnColor					=	0;
+	volatile uint32_t dotProduct		=	0;
+	uint32_t cosAlpha					=	0;
+
+	const uint32_t* dotProductPtr = &dotProduct;
 
 
 	// Si la couleur est la même qu'au dernier appel, ne calcule pas sa norme
-	if(lastColorRef != colorRef)
+	if(lastColorRef.r != colorRef.r)
 	{
 		// CALCUL DE LA NORME
 
 		// Somme des carrés (à optimiser)
-		magnColorRef	=	colorRefPtr[0]*colorRefPtr[0] +\
-							colorRefPtr[1]*colorRefPtr[1] +\
-							colorRefPtr[2]*colorRefPtr[2];
+		magnColorRef	=	colorRef.r*colorRef.r +\
+							colorRef.g*colorRef.g +\
+							colorRef.b*colorRef.b;
 
 		// Division par 2^18
 		temp = magnColorRef<<13;
 
 		arm_sqrt_q31(temp,&temp);
 
-		// Multiplication par 2^9 pour obtenir un Q16.16
-		magnColorRef	=	temp>>6;
+		// Multiplication par 2^9 pour obtenir un Q24.8
+		magnColorRef	=	temp>>14;
 
-		lastColorRef = magnColorRef;
+		lastColorRef = colorRef;
 	}
 
 	// CALCUL DE LA NORME
 
 	// Somme des carrés (à optimiser)
-	magnColor	=	colorPtr[0]*colorPtr[0] +\
-			colorPtr[1]*colorPtr[1] +\
-			colorPtr[2]*colorPtr[2];
+	magnColor	=	color.r*color.r +\
+					color.g*color.g +\
+					color.b*color.b;
 
 	// Division par 2^18
 	temp = magnColor<<13;
 
 	arm_sqrt_q31(temp,&temp);
 
-	// Multiplication par 2^9 pour obtenir un Q16.16
-	magnColor	=	temp>>6;
+	// Multiplication par 2^9 pour obtenir un Q24.8
+	magnColor	=	temp>>14;
 
 	// CALCUL DU PRODUIT SCALAIRE
 
-	dotProduct =	colorRefPtr[0]*colorPtr[0] +\
-					colorRefPtr[1]*colorPtr[1] +\
-					colorRefPtr[2]*colorPtr[2];
+	dotProduct =	colorRef.r*color.r +\
+					colorRef.g*color.g +\
+					colorRef.b*color.b;
 
-	dotProduct =	dotProduct<<16;
+	//cosAlpha	=	(256*((256*dotProduct)/magnColorRef))/magnColor;
+	cosAlpha	=	256*dotProduct;
+	//chThdSleepSeconds(1);
+	cosAlpha	/=	magnColorRef;
+	//chThdSleepSeconds(1);
+	cosAlpha	*=	65536;
+	//chThdSleepSeconds(1);
+	cosAlpha	/=magnColor;
+	//chThdSleepSeconds(1);
 
-	cosAlpha	=	dotProduct/(magnColorRef*magnColor);
+	//pImTest(dotProduct);
 
 	return cosAlpha;
 

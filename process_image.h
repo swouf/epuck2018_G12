@@ -22,6 +22,12 @@ typedef enum {
 	FOCUS_ON_BALL,
 } pIm_MODE_t;
 
+typedef struct{
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
+} pixel_t;
+
 void pImProcessImageStart(void);
 uint16_t pImGetLinePosition(void);
 void pImSetBallDetectionSemaphore(binary_semaphore_t* sem);
