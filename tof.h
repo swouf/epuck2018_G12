@@ -8,7 +8,7 @@
 #ifndef TOF_H_
 #define TOF_H_
 
-#define BALL_SIZE 66
+#define BALL_SIZE 37
 #define LENS_DIAMETER_IN_PIXELS 1445
 
 
@@ -18,8 +18,8 @@
 void tof_init(void);
 /*
  * @brief Computes the distance between the e-puck and the object facing the sensor by using the time-of-flight sensor/
- * Calcule la distance séparant l'e-puck de l'objet en face du capteur
- * @return The distance between the e-puck and the object in front of the sensor/La distance séparant l'e-puck et l'objet devant lui
+ * Calcule la distance sï¿½parant l'e-puck de l'objet en face du capteur
+ * @return The distance between the e-puck and the object in front of the sensor/La distance sï¿½parant l'e-puck et l'objet devant lui
  * */
 uint16_t tof_get_distance(void);
 /*
@@ -28,9 +28,9 @@ uint16_t tof_get_distance(void);
 void tof_stop(void);
 /*
  * @brief Computes the theoretical width in pixels of the ball by using the distance measured by the time-of-flight sensor/
- * Calcule la largeur en pixels théorique de la balle en fonction de la distance mesurée par le capteur time-of-flight
- * @param The distance between the e-puck and the object in front of the time-of-flight sensor/La distance mesurée par le capteur
- * @return The theoretical width in pixels of the ball with this distance/La largeur théorique en pixels de la balle
+ * Calcule la largeur en pixels thï¿½orique de la balle en fonction de la distance mesurï¿½e par le capteur time-of-flight
+ * @param The distance between the e-puck and the object in front of the time-of-flight sensor/La distance mesurï¿½e par le capteur
+ * @return The theoretical width in pixels of the ball with this distance/La largeur thï¿½orique en pixels de la balle
  * */
 uint16_t tof_get_ball_pixel_width(uint16_t distance);
 

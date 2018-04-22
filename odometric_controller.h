@@ -40,6 +40,8 @@ void odCtrlStart(void);
 void odCtrlPause(void);
 
 void odCtrlResume(void);
+
+void odCtrlClear(void);
 /*
  * @brief Makes the e-puck rotate counterclockwise of a given angle/Fait tourner le e-puck d'un certain angle dans le sens anti-horaire
  * @param The rotation angle in radians/L'angle de rotation en radians
@@ -47,13 +49,13 @@ void odCtrlResume(void);
 void odCtrlRotate(float alpha);
 /*
  * @brief Makes the e-puck move to a point in the XY plane and makes it rotate to have the orientation desired
- * /Utilise les moteurs de l'e-puck pour le faire se déplacer à une position XY dans le plan et lui donner une orientation désirée.
- * @param The XY target coordinates and the orientation/Les coordonnées XY et l'orientation désirées
+ * /Utilise les moteurs de l'e-puck pour le faire se dï¿½placer ï¿½ une position XY dans le plan et lui donner une orientation dï¿½sirï¿½e.
+ * @param The XY target coordinates and the orientation/Les coordonnï¿½es XY et l'orientation dï¿½sirï¿½es
  * */
 void odCtrlAddPointToPath(int x, int y, float orientation);
 /*
- * @brief Sets the position of the e-puck in the XY plane and its orientation/Règle la position et l'orientation de l'e-puck
- * @param The XY coordinates and orientation/Les coordonées XY et l'orientation
+ * @brief Sets the position of the e-puck in the XY plane and its orientation/Rï¿½gle la position et l'orientation de l'e-puck
+ * @param The XY coordinates and orientation/Les coordonï¿½es XY et l'orientation
  * */
 void odCtrlSetPosition(int x, int y, float orientation);
 /*
@@ -62,7 +64,7 @@ void odCtrlSetPosition(int x, int y, float orientation);
  * */
 position_t odCtrlGetPosition(void);
 /*
- * @brief Makes the e-puck move forward for a distance/Fait avancer l'e-puck d'une distance donnée
+ * @brief Makes the e-puck move forward for a distance/Fait avancer l'e-puck d'une distance donnï¿½e
  * @param The distance the e-puck travels/La distance de parcours
  * */
 void odCtrlMoveForward(int length);
@@ -70,7 +72,7 @@ void odCtrlMoveForward(int length);
 void odCtrlRotateTo(float orientation);
 /*
  * @brief Makes the e-puck shoot the ball by moving forward a distance of 7 cm
- * /Fait tirer le e-puck dans la balle en se déplaçant d'une distance de 7 cm
+ * /Fait tirer le e-puck dans la balle en se dï¿½plaï¿½ant d'une distance de 7 cm
  * */
 void shoot(void);
 

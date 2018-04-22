@@ -26,11 +26,17 @@
 #include <tof.h>
 #include <odometric_controller.h>
 
+// À ENLEVER !!!!
+#include <motors.h>
+
 /**********		STATIC AND CST DECLARATIONS		**********/
 
 static uint16_t	ballWidth		= 0;
 static uint16_t	line_position	= IMAGE_BUFFER_SIZE/2;	//middle
 static pIm_MODE_t processMode	= SEARCH_BALL;
+
+static thread_t* CaptureImagePtr	=	NULL;
+static thread_t* ProcessImagePtr	=	NULL;
 
 //semaphore
 static BSEMAPHORE_DECL(image_ready_sem, TRUE);
@@ -38,7 +44,7 @@ static binary_semaphore_t* ball_detected = NULL;
 
 // Functions prototypes
 static uint16_t pImExtractLineWidth(uint8_t *buffer);
-static void pImExtractGreen(uint16_t* input, uint8_t* output, unsigned int size);
+static void pImExtractBlack(uint16_t* input, uint8_t* output, unsigned int size);
 static uint8_t pImCompareColors(pixel_t color, pixel_t colorRef);
 
 /**********		THREADS		**********/
@@ -58,16 +64,21 @@ static THD_FUNCTION(CaptureImage, arg) {
 	po8030_start();
 	chThdSleepMilliseconds(500);
 
+#if N_MEAN == 1
 	//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line 10 + 11 (minimum 2 lines because reasons)
-	po8030_advanced_config(FORMAT_RGB565, 0, 300, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+	po8030_advanced_config(FORMAT_RGB565, 0, 224, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+#else
+	po8030_advanced_config(FORMAT_RGB565, 0, 224, IMAGE_BUFFER_SIZE, N_MEAN, SUBSAMPLING_X1, SUBSAMPLING_X1);
+#endif
 	//po8030_set_awb(0);
-	//po8030_set_rgb_gain(0, 0x48, 0);
+	po8030_set_rgb_gain(0x48, 0x48, 0x48);
+	po8030_set_rgb_gain(0, 0x48, 0);
 	dcmi_enable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 
 	dcmi_prepare();
 
-    while(1){
+    while(!chThdShouldTerminateX()){
         //starts a capture
 		dcmi_capture_start();
 		//waits for the capture to be done
@@ -88,11 +99,13 @@ static THD_FUNCTION(ProcessImage, arg) {
 	chprintf((BaseSequentialStream *)&SD3, " Launching ProcessImage ! \n");
 #endif
 
+	uint16_t	line_pos_center	=	0;
+
 	uint8_t		*img_buff_ptr;
 	uint8_t		image[IMAGE_BUFFER_SIZE] = {0};
 	position_t	imagePos;
 
-    while(1){
+    while(!chThdShouldTerminateX()){
     	//waits until an image has been captured
         chBSemWait(&image_ready_sem);
 
@@ -116,7 +129,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 		{
 		uint16_t testColor[5] = {0x18E6, 0x18E8, 0x6332, 0x426E, 0x855F2F};
 		uint8_t	testViolet[5] = {0};
-		pImExtractViolet(&testColor, &testViolet, 5);
+		pImExtractColor(&testColor, &testViolet, 5);
 
 		for(int i = 0; i<5;i++)
 		{
@@ -126,10 +139,10 @@ static THD_FUNCTION(ProcessImage, arg) {
 		}
 #endif
 
-		pImExtractViolet((uint16_t*)img_buff_ptr, image, IMAGE_BUFFER_SIZE);
-		//pImExtractGreen((uint16_t*)img_buff_ptr, image, IMAGE_BUFFER_SIZE);
-		//
-		SendUint8ToMatlab(image, IMAGE_BUFFER_SIZE);
+		//pImExtractColor((uint16_t*)img_buff_ptr, image, IMAGE_BUFFER_SIZE);
+		pImExtractBlack((uint16_t*)img_buff_ptr, image, IMAGE_BUFFER_SIZE);
+
+		//SendUint8ToMatlab(image, IMAGE_BUFFER_SIZE);
 
 		if(processMode == SEARCH_BALL)
 		{
@@ -146,9 +159,28 @@ static THD_FUNCTION(ProcessImage, arg) {
 				chprintf((BaseSequentialStream *)&SD3, "ballWidth = %d \t expectedBallWidth = %d\t distance = %d \n", ballWidth, expectedBallWidth, distance);
 				chprintf((BaseSequentialStream *)&SD3, "Ball Detected !!!\n");
 #endif
-				//chBSemSignal(ball_detected);
+				chBSemSignal(ball_detected);
+				chThdTerminate(CaptureImagePtr);
+				chThdTerminate(ProcessImagePtr);
 			}
 		}
+		/*
+		else if (processMode == FOCUS_ON_BALL)
+		{
+			line_pos_center = line_position - IMAGE_BUFFER_SIZE/2;
+			if(line_pos_center < FOCUS_TOLERANCE)
+			{
+
+			}
+			else
+			{
+				int speed = 2200*(line_pos_center/(IMAGE_BUFFER_SIZE/2));
+
+				left_motor_set_speed(speed);
+				right_motor_set_speed(-speed);
+			}
+		}
+		*/
     }
 }
 
@@ -194,10 +226,11 @@ static uint16_t pImExtractLineWidth(uint8_t *buffer){
 		{
 			//the slope must at least be WIDTH_SLOPE wide and is compared
 		    //to the mean of the image
-		    if(buffer[i] < mean && buffer[i+WIDTH_SLOPE] > mean)
+		    if(buffer[i] > mean && buffer[i+WIDTH_SLOPE] < mean)
 		    {
 		        begin = i;
 		        stop = 1;
+		        //chprintf((BaseSequentialStream *)&SD3, "BEGIN FOUND in %d !\n", i);
 		    }
 		    i++;
 		}
@@ -206,12 +239,15 @@ static uint16_t pImExtractLineWidth(uint8_t *buffer){
 		{
 		    stop = 0;
 
+		    i += 10;
+
 		    while(stop == 0 && i < IMAGE_BUFFER_SIZE)
 		    {
-		        if(buffer[i] < mean && buffer[i-WIDTH_SLOPE] > mean)
+		        if(buffer[i] < mean && buffer[i+WIDTH_SLOPE] > mean)
 		        {
 		            end = i;
 		            stop = 1;
+		            //chprintf((BaseSequentialStream *)&SD3, "END FOUND in %d !\n", i);
 		        }
 		        i++;
 		    }
@@ -236,22 +272,22 @@ static uint16_t pImExtractLineWidth(uint8_t *buffer){
 		}
 	}while(wrong_line);
 
+	//chprintf((BaseSequentialStream *)&SD3, "begin = %d, end = %d, line_not_found = %d\n", begin, end, line_not_found);
+
 	if(line_not_found){
 		begin = 0;
 		end = 0;
 		//width = last_width;
 		width = 0;
-	}else{
+	}
+	else
+	{
 		last_width = width = (end - begin);
 		line_position = (begin + end)/2; //gives the line position.
 	}
 
-//	//sets a maximum width or returns the measured width
-//	if((PXTOCM/width) > MAX_DISTANCE){
-//		return PXTOCM/MAX_DISTANCE;
-//	}else{
-//		return width;
-//	}
+	//chprintf((BaseSequentialStream *)&SD3, "width = %d\n", width);
+
 	return width;
 }
 uint16_t pImGetLinePosition(void){
@@ -260,11 +296,8 @@ uint16_t pImGetLinePosition(void){
 
 
 void pImProcessImageStart(void){
-	chThdCreateStatic(waProcessImage, sizeof(waProcessImage), NORMALPRIO, ProcessImage, NULL);
-	chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO, CaptureImage, NULL);
-#ifdef _DEBUG
-	//chprintf((BaseSequentialStream *)&SD3, "ProcessImage launched !\nCaptureImage launched ! \n");
-#endif
+	ProcessImagePtr = chThdCreateStatic(waProcessImage, sizeof(waProcessImage), NORMALPRIO, ProcessImage, NULL);
+	CaptureImagePtr = chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO, CaptureImage, NULL);
 }
 void pImSetBallDetectionSemaphore(binary_semaphore_t* sem){
 	ball_detected = sem;
@@ -274,45 +307,44 @@ void pImSetMode(pIm_MODE_t mode)
 	processMode = mode;
 }
 #define MAX_COLOR_ERROR 50
-void pImExtractViolet(uint16_t* input, uint8_t* output, unsigned int size)
+void pImExtractColor(uint16_t* input, uint8_t* output, unsigned int size)
 {
-	//unsigned int basisChangeCoeff[3] = {8837, 0 , 9102};
 	unsigned int temp = 0;
 
 	unsigned int RGB = 0;
 	pixel_t	pixel;
 	pixel_t pixelRef;
 
-	pixelRef.r = 198;
-	pixelRef.g = 237;
-	pixelRef.b = 44;
-	//pixelRef.r = 96;
-	//pixelRef.g = 100;
-	//pixelRef.b = 147;
-	//unsigned int G = 0;
-	//unsigned int B = 0;
+	pixelRef.r = COLOR_REF_R;
+	pixelRef.g = COLOR_REF_G;
+	pixelRef.b = COLOR_REF_B;
 
 	for(int i = 0;i<size;i++)
 	{
+		temp = 0;
+		for(int j = 0; j<N_MEAN;j++)
+		{
+			temp += input[i+j*IMAGE_BUFFER_SIZE];
+		}
+		input[i] = temp/N_MEAN;
+
 		pixel.b		= ((input[i]&0x1F))*8;
 		pixel.r		= ((input[i]&0xF800)>>11)*8;
 		pixel.g		= ((input[i]&0x7E0)>>5)*4;
 
-		//chprintf((BaseSequentialStream *)&SD3, "cosAlpha = %d\n",pImCompareColors(pixel, pixelRef));
-
-//		if(pImCompareColors(pixel, pixelRef) > 240)
-//		{
-//			//chprintf((BaseSequentialStream *)&SD3, "R = %d\t G = %d\t B = %d\n", R, G, B);
-//			output[i] = 0xFF;
-//		}
-//		else
-//		{
-//			output[i] = 0;
-//		}
-		output[i] = pImCompareColors(pixel, pixelRef);
+		if(pImCompareColors(pixel, pixelRef) > 240)
+		{
+			output[i] = 0xFF;
+		}
+		else
+		{
+			output[i] = 0;
+		}
+		//output[i] = pImCompareColors(pixel, pixelRef);
+		//output[i] = pixel.r;
 	}
 }
-static void pImExtractGreen(uint16_t* input, uint8_t* output, unsigned int size)
+static void pImExtractBlack(uint16_t* input, uint8_t* output, unsigned int size)
 {
 	//unsigned int R = 0;
 	unsigned int G = 0;
@@ -400,5 +432,4 @@ static uint8_t pImCompareColors(pixel_t color, pixel_t colorRef)
 	//pImTest(dotProduct);
 
 	return cosAlpha;
-
 }

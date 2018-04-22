@@ -44,6 +44,9 @@ void play(void){
 		position_t shooting_position;
 		shooting_position = compute_shooting_position(ball_get_position());
 		chprintf((BaseSequentialStream *)&SD3, "SHOOTING POSITION: x = %d um, y = %d um, orientation = %f\n", shooting_position.x, shooting_position.y, shooting_position.orientation);
+
+		odCtrlAddPointToPath(shooting_position.x, shooting_position.y, shooting_position.orientation);
+
 	    chThdSleepMilliseconds(200);
 
 	    while (1) {

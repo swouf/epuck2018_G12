@@ -27,6 +27,7 @@ static const float stepLength	=	WHEEL_CIRC/2000;
 static position_t	position;
 static position_t	path[PATH_BUFFER_SIZE];
 static position_t*	pathPtr					= path;
+static position_t*	target					= path;
 static thread_t*	odRotateThreadPtr		= NULL;
 static thread_t*	odMoveForwardThreadPtr	= NULL;
 
@@ -196,8 +197,6 @@ static THD_FUNCTION(odometricRegulator, arg) {
     path[0].y = 0;
     path[0].orientation = 0;
 
-    static position_t* target = path;
-
     float xd						= 	0;
     float yd						= 	0;
     float alpha						=	0;
@@ -357,4 +356,20 @@ void shoot(void)
 
 	position.x += (int) (cosOrientation*motorDispl);
 	position.y += (int) (sinOrientation*motorDispl);
+}
+void odCtrlClear(void)
+{
+	int index = 0;
+	target->x				=	position.x;
+	target->y				=	position.y;
+	target->orientation		=	position.orientation;
+	for(int i = 1;i<PATH_BUFFER_SIZE;i++)
+	{
+		index = target+(i%PATH_BUFFER_SIZE);
+		path[index].x = 0;
+		path[index].y = 0;
+		path[index].orientation = 0;
+	}
+
+	pathPtr = target;
 }
