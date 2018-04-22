@@ -21,7 +21,9 @@ void tof_init(void)
 
 uint16_t tof_get_distance(void)
 {
-	return VL53L0X_get_dist_mm();
+	uint16_t tof_measured = VL53L0X_get_dist_mm();
+	uint16_t tof_corrected = (uint16_t)(0.684*tof_measured-0.6604);
+	return tof_corrected;
 }
 void tof_stop(void)
 {
