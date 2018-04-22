@@ -35,14 +35,14 @@ position_t ball_get_position(void)
 
 	position_t epuck_position;
 	position_t ball_position;
-	uint16_t epuck_ball_distance;
+	uint32_t epuck_ball_distance;
 	float ball_direction = 0;
 
 	epuck_position.x = EPUCK_X_START;
 	epuck_position.y = EPUCK_Y_START;
 	epuck_position.orientation = EPUCK_ORIENTATION_START;
 
-	epuck_ball_distance = tof_get_distance();
+	epuck_ball_distance = tof_get_distance()*1000;
 	ball_direction = epuck_position.orientation; // @suppress("Field cannot be resolved")
 
 	ball_position.x = epuck_position.x - epuck_ball_distance*arm_cos_f32(PI-ball_direction);
