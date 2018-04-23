@@ -10,7 +10,7 @@
 #define ODOMETRIC_CONTROLLER_H_
 
 //#define _DEBUG_ROTATE
-//#define _DEBUG_FORWARD
+#define _DEBUG_FORWARD
 //#define _DEBUG_PATH
 
 #define ROTATIONAL_KP	1000
@@ -19,7 +19,11 @@
 
 #define FORWARD_KP	0x8FFFFFF
 #define FORWARD_KI	0xFFFF
-#define FORWARD_KD	0
+#define FORWARD_KD	0xFFFFFF
+
+//#define FORWARD_KP	1000
+//#define FORWARD_KI	1
+//#define FORWARD_KD	10
 
 #define ORIENTATION_ERROR_MAX	0.0175f
 #define LINEAR_ERROR_MAX		130
@@ -74,7 +78,7 @@ void odCtrlRotateTo(float orientation);
  * @brief Makes the e-puck shoot the ball by moving forward a distance of 7 cm
  * /Fait tirer le e-puck dans la balle en se d�pla�ant d'une distance de 7 cm
  * */
-void shoot(void);
+void odCtrlShoot(void);
 
 
 #endif /* ODOMETRIC_CONTROLLER_H_ */

@@ -31,6 +31,9 @@ static position_t*	target					= path;
 static thread_t*	odRotateThreadPtr		= NULL;
 static thread_t*	odMoveForwardThreadPtr	= NULL;
 
+//semaphore
+static BSEMAPHORE_DECL(moving, TRUE);
+
 static THD_WORKING_AREA(waOdMoveForward, 256);
 static THD_FUNCTION(odMoveForward, lengthPtr) {
 	int length = *(int*)lengthPtr;
@@ -153,6 +156,7 @@ static THD_FUNCTION(odRotate, orientationPtr) {
 #ifdef _DEBUG_ROTATE
 		chprintf((BaseSequentialStream *)&SD3, "ORIENTATION PID\n ====================\n");
 		chprintf((BaseSequentialStream *)&SD3, "error = %f \n leftSpeed = %d \n", error, leftSpeed);
+		chprintf((BaseSequentialStream *)&SD3, "orientation de l epuck = %f\n", position.orientation);
 #endif
 
 		chThdSleepMilliseconds(100);
@@ -189,13 +193,14 @@ static THD_FUNCTION(odometricRegulator, arg) {
 
     //inits the motors
     motors_init();
-    position.x = 0;
-    position.y = 0;
-    position.orientation = 0;
 
-    path[0].x = 0;
-    path[0].y = 0;
-    path[0].orientation = 0;
+    position.x = EPUCK_X_START;
+    position.y = EPUCK_Y_START;
+    position.orientation = EPUCK_ORIENTATION_START;
+
+    path[0].x = EPUCK_X_START;
+    path[0].y = EPUCK_Y_START;
+    path[0].orientation = EPUCK_ORIENTATION_START;
 
     float xd						= 	0;
     float yd						= 	0;
@@ -260,6 +265,7 @@ static THD_FUNCTION(odometricRegulator, arg) {
 				chThdWait(odRotateThreadPtr);
 			}
     	}
+    	chBSemSignal(&moving);
     	chThdSleepMilliseconds(500);
     }
 }
@@ -337,8 +343,14 @@ position_t odCtrlGetPosition(void)
 {
 	return position;
 }
-void shoot(void)
+void odCtrlShoot(void)
 {
+	chBSemWait(&moving);
+
+#ifdef _DEBUG
+	chprintf((BaseSequentialStream *)&SD3, "SHOOT \n");
+#endif
+
 	float cosOrientation		=	arm_cos_f32(position.orientation);
 	float sinOrientation		=	arm_sin_f32(position.orientation);
 	int			motorDispl = 0;

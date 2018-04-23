@@ -44,10 +44,25 @@ void play(void){
 	    odCtrlSetPosition(EPUCK_X_START, EPUCK_Y_START, EPUCK_ORIENTATION_START);
 
 		position_t shooting_position;
-		shooting_position = compute_shooting_position(ball_get_position());
+		position_t ball_position;
+
+		ball_position = ball_get_position();
+
+//		ball_position.x = 100000;
+//		ball_position.y = -200000;
+//		ball_position.orientation = 0;
+
+		shooting_position = compute_shooting_position(ball_position);
+		chprintf((BaseSequentialStream *)&SD3, "BALL POSITION: x = %d um, y = %d um, orientation = %f\n", ball_position.x, ball_position.y, ball_position.orientation);
 		chprintf((BaseSequentialStream *)&SD3, "SHOOTING POSITION: x = %d um, y = %d um, orientation = %f\n", shooting_position.x, shooting_position.y, shooting_position.orientation);
 
 		odCtrlAddPointToPath(shooting_position.x, shooting_position.y, shooting_position.orientation);
+		odCtrlAddPointToPath(ball_position.x, ball_position.y, ball_position.orientation);
+		odCtrlAddPointToPath(EPUCK_X_START, EPUCK_Y_START,EPUCK_ORIENTATION_START);
+
+		//odCtrlShoot();
+
+//		odCtrlAddPointToPath(200000, 0, PI);
 
 	    chThdSleepMilliseconds(200);
 
