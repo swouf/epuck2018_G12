@@ -10,8 +10,9 @@
 #define ODOMETRIC_CONTROLLER_H_
 
 //#define _DEBUG_ROTATE
-#define _DEBUG_FORWARD
+//#define _DEBUG_FORWARD
 //#define _DEBUG_PATH
+//#define _DEBUG_ODCTRL
 
 #define ROTATIONAL_KP	1000
 #define ROTATIONAL_KI	1
@@ -79,6 +80,8 @@ void odCtrlRotateTo(float orientation);
  * /Fait tirer le e-puck dans la balle en se d�pla�ant d'une distance de 7 cm
  * */
 void odCtrlShoot(void);
+
+void odCtrlStopMovement(void);
 
 
 #endif /* ODOMETRIC_CONTROLLER_H_ */

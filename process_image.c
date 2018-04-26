@@ -26,9 +26,6 @@
 #include <tof.h>
 #include <odometric_controller.h>
 
-// À ENLEVER !!!!
-#include <motors.h>
-
 /**********		STATIC AND CST DECLARATIONS		**********/
 
 static uint16_t	ballWidth		= 0;

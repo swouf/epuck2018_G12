@@ -28,11 +28,15 @@ static position_t	position;
 static position_t	path[PATH_BUFFER_SIZE];
 static position_t*	pathPtr					= path;
 static position_t*	target					= path;
-static thread_t*	odRotateThreadPtr		= NULL;
-static thread_t*	odMoveForwardThreadPtr	= NULL;
+static int			maxSpeed				= MOTOR_SPEED_LIMIT;
 
 //semaphore
 static BSEMAPHORE_DECL(moving, TRUE);
+
+// threads pointers
+static thread_t* odMoveForwardPtr		=	NULL;
+static thread_t* odRotatePtr			=	NULL;
+static thread_t* odometricRegulatorPtr	=	NULL;
 
 static THD_WORKING_AREA(waOdMoveForward, 256);
 static THD_FUNCTION(odMoveForward, lengthPtr) {
@@ -68,7 +72,7 @@ static THD_FUNCTION(odMoveForward, lengthPtr) {
 		chprintf((BaseSequentialStream *)&SD3, "length = %d\n", length);
 #endif
 
-	while(((error > LINEAR_ERROR_MAX) & (error > 0)) | ((error < LINEAR_ERROR_MAX) & (error < 0)))
+	while((((error > LINEAR_ERROR_MAX) & (error > 0)) || ((error < LINEAR_ERROR_MAX) & (error < 0))) && !chThdShouldTerminateX())
 	{
 		error = length-linearPos;
 
@@ -112,7 +116,7 @@ static THD_FUNCTION(odMoveForward, lengthPtr) {
 	//position.x += (int) (cosOrientation*linearPos);
 	//position.y += (int) (sinOrientation*linearPos);
 
-	odMoveForwardThreadPtr = NULL;
+	odMoveForwardPtr = NULL;
 }
 
 static THD_WORKING_AREA(waOdRotate, 256);
@@ -140,11 +144,17 @@ static THD_FUNCTION(odRotate, orientationPtr) {
 #endif
 
 
-	while(((error > ORIENTATION_ERROR_MAX) & (error > 0)) | ((error < ORIENTATION_ERROR_MAX) & (error < 0)))
+	while((((error > ORIENTATION_ERROR_MAX) & (error > 0)) || ((error < ORIENTATION_ERROR_MAX) & (error < 0))) && !chThdShouldTerminateX())
 	{
 		error = orientation-position.orientation;
 
 		rightSpeed = (int)arm_pid_f32(&rotationalPID, error);
+
+		if(rightSpeed > maxSpeed)
+		{
+			rightSpeed = maxSpeed;
+		}
+
 		leftSpeed = -rightSpeed;
 
 		leftMotorPos = left_motor_get_pos();
@@ -178,7 +188,7 @@ static THD_FUNCTION(odRotate, orientationPtr) {
 			position.orientation -= 2*PI;
 		}
 	}
-	odRotateThreadPtr = NULL;
+	odRotatePtr = NULL;
 #ifdef _DEBUG_ROTATE
 	chprintf((BaseSequentialStream *)&SD3, "Final error = %f \n", error);
 #endif
@@ -208,7 +218,7 @@ static THD_FUNCTION(odometricRegulator, arg) {
     float ratio						=	0;
     float length					=	0;
 
-    while(1)
+    while(!chThdShouldTerminateX())
     {
     	if(target != pathPtr)
     	{
@@ -248,31 +258,34 @@ static THD_FUNCTION(odometricRegulator, arg) {
 				alpha -= 2*PI;
 			}
 
-			odCtrlRotateTo(alpha);
-			chThdWait(odRotateThreadPtr);
-
 			float lengthSquared = (xd*xd)+(yd*yd);
 
-			if(arm_sqrt_f32(lengthSquared, &length) == ARM_MATH_SUCCESS)
+			if(!chThdShouldTerminateX())
+			{
+				odCtrlRotateTo(alpha);
+				if(odRotatePtr){chThdWait(odRotatePtr);}
+			}
+			if((arm_sqrt_f32(lengthSquared, &length) == ARM_MATH_SUCCESS) && !chThdShouldTerminateX())
 			{
 				odCtrlMoveForward((int)length);
-				chThdWait(odMoveForwardThreadPtr);
+				if(odMoveForwardPtr){chThdWait(odMoveForwardPtr);}
 			}
-
-			if(target->orientation > 0)
+			if((target->orientation > 0) && !chThdShouldTerminateX())
 			{
 				odCtrlRotateTo(target->orientation);
-				chThdWait(odRotateThreadPtr);
+				chprintf((BaseSequentialStream *)&SD3, "BORDEL %x\n", odRotatePtr);
+				if(odRotatePtr){chThdWait(odRotatePtr);}
 			}
     	}
     	chBSemSignal(&moving);
     	chThdSleepMilliseconds(500);
     }
+    odometricRegulatorPtr = NULL;
 }
 
 void odCtrlStart(void)
 {
-	chThdCreateStatic(waOdometricRegulator, sizeof(waOdometricRegulator), NORMALPRIO, odometricRegulator, NULL);
+	odometricRegulatorPtr = chThdCreateStatic(waOdometricRegulator, sizeof(waOdometricRegulator), NORMALPRIO, odometricRegulator, NULL);
 }
 
 void odCtrlPause(void);
@@ -313,8 +326,8 @@ void odCtrlRotateTo(float orientation)
 {
 	static float a = 0;
 	a = orientation;
-	if(odRotateThreadPtr) chThdWait(odRotateThreadPtr);
-	odRotateThreadPtr = chThdCreateStatic(waOdRotate, sizeof(waOdRotate), NORMALPRIO, odRotate, &a);
+	if(odRotatePtr) chThdWait(odRotatePtr);
+	odRotatePtr = chThdCreateStatic(waOdRotate, sizeof(waOdRotate), NORMALPRIO, odRotate, &a);
 }
 void odCtrlRotate(float alpha)
 {
@@ -334,8 +347,8 @@ void odCtrlMoveForward(int length)
 {
 	static int a = 0;
 	a = length;
-	if(odMoveForwardThreadPtr) chThdWait(odMoveForwardThreadPtr);
-	odMoveForwardThreadPtr = chThdCreateStatic(waOdMoveForward, sizeof(waOdMoveForward), NORMALPRIO, odMoveForward, &a);
+	if(odMoveForwardPtr) chThdWait(odMoveForwardPtr);
+	odMoveForwardPtr = chThdCreateStatic(waOdMoveForward, sizeof(waOdMoveForward), NORMALPRIO, odMoveForward, &a);
 }
 
 
@@ -384,4 +397,34 @@ void odCtrlClear(void)
 	}
 
 	pathPtr = target;
+}
+void odCtrlStopMovement(void)
+{
+#ifdef _DEBUG_ODCTRL
+	chprintf((BaseSequentialStream *)&SD3, "Stopping movement... \t");
+#endif
+
+	chThdTerminate(odometricRegulatorPtr);
+	chThdTerminate(odMoveForwardPtr);
+	chThdTerminate(odRotatePtr);
+
+	if(odMoveForwardPtr) {chThdWait(odMoveForwardPtr);}
+
+	if(odRotatePtr) {chThdWait(odRotatePtr);}
+
+	if(odometricRegulator) {chThdWait(odometricRegulatorPtr);}
+
+#ifdef _DEBUG_ODCTRL
+	chprintf((BaseSequentialStream *)&SD3, "Movement stopped !\nClearing...\t");
+#endif
+
+	odCtrlClear();
+#ifdef _DEBUG_ODCTRL
+	chprintf((BaseSequentialStream *)&SD3, "Cleared...\t");
+#endif
+	odCtrlStart();
+}
+void odCtrlSetMaxSpeed(int speed)
+{
+	maxSpeed = speed;
 }
