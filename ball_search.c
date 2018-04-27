@@ -66,7 +66,7 @@ position_t compute_shooting_position(position_t ball_position){
 	position_t shooting_position;
 	int xb = ball_position.x;
 	int yb = ball_position.y;
-	float32_t m = yb/xb;
+	float32_t m = ((float)yb)/((float)xb);
 
 	//Compute the square root of 1+m^2 and store the result in pOut
 	float32_t pOut;
@@ -81,6 +81,8 @@ position_t compute_shooting_position(position_t ball_position){
 
 	shooting_position.y = m*shooting_position.x;
 	shooting_position.orientation = atan(m)+PI;
+
+	chprintf((BaseSequentialStream *)&SD3, "calcul de la shooting position : m = %f\n", m);
 
 	return shooting_position;
 }
