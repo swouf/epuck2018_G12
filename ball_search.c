@@ -26,6 +26,8 @@ position_t ball_get_position(void)
 
 	pImSetBallDetectionSemaphore(&ball_spotted);
 
+	odCtrlSetMaxSpeed(200);
+
 	odCtrlAddPointToPath(position.x, position.y, position.orientation+(PI/2));
 	odCtrlAddPointToPath(position.x, position.y, position.orientation-(PI/2));
 	odCtrlAddPointToPath(position.x, position.y, position.orientation+(PI/2));
@@ -40,7 +42,8 @@ position_t ball_get_position(void)
 	chBSemWait(&ball_spotted);
 
 	odCtrlStopMovement();
-	//odCtrlClear();
+
+	odCtrlSetMaxSpeed(2200);
 
 	position_t epuck_position;
 	position_t ball_position;

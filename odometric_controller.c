@@ -34,7 +34,6 @@ static uint8_t		odometricRegulatorShouldTerminate	= 0;
 static float		odRotateArgOrientation				= 0;
 
 //semaphore
-static BSEMAPHORE_DECL(moving, TRUE);
 static BSEMAPHORE_DECL(odRotateRunSem, TRUE);
 static BSEMAPHORE_DECL(odRotateEnd, TRUE);
 
@@ -173,6 +172,10 @@ static THD_FUNCTION(odRotate, orientationPtr) {
 			{
 				rightSpeed = maxSpeed;
 			}
+			else if(rightSpeed < (-maxSpeed))
+			{
+				rightSpeed = (-maxSpeed);
+			}
 
 			leftSpeed = -rightSpeed;
 
@@ -215,8 +218,13 @@ static THD_FUNCTION(odRotate, orientationPtr) {
 static THD_WORKING_AREA(waOdometricRegulator, 1024);
 static THD_FUNCTION(odometricRegulator, arg) {
 
+	float xd, yd, alpha, ratio, length;
+
 	do
 	{
+#ifdef _DEBUG_PATH
+		chprintf((BaseSequentialStream *)&SD3, "odometric Regulator is waiting for start signal\n");
+#endif
 		chBSemWait(&odometricRegulatorRunSem);
 		odometricRegulatorShouldTerminate = 0;
 
@@ -235,11 +243,11 @@ static THD_FUNCTION(odometricRegulator, arg) {
 		path[0].y = EPUCK_Y_START;
 		path[0].orientation = EPUCK_ORIENTATION_START;
 
-		float xd						= 	0;
-		float yd						= 	0;
-		float alpha						=	0;
-		float ratio						=	0;
-		float length					=	0;
+		xd							= 	0;
+		yd							= 	0;
+		alpha						=	0;
+		ratio						=	0;
+		length						=	0;
 
 		while(!odometricRegulatorShouldTerminate)
 		{
@@ -300,11 +308,16 @@ static THD_FUNCTION(odometricRegulator, arg) {
 					chBSemWait(&odRotateEnd);
 				}
 			}
-			chBSemSignal(&moving);
-			chThdSleepMilliseconds(500);
+#ifdef _DEBUG_PATH
+				chprintf((BaseSequentialStream *)&SD3, "Fin de la BOUCLE !\n");
+#endif
+			if(!odometricRegulatorShouldTerminate){chThdSleepMilliseconds(500);}
 		}
-		odometricRegulatorPtr = NULL;
+
 		chBSemSignal(&odometricRegulatorEnd);
+#ifdef _DEBUG_PATH
+				chprintf((BaseSequentialStream *)&SD3, "odometricRegulatorEnd : SIGNAL ENVOYÉ\n");
+#endif
 	}while(1);
 }
 
@@ -384,8 +397,6 @@ position_t odCtrlGetPosition(void)
 }
 void odCtrlShoot(void)
 {
-	chBSemWait(&moving);
-
 #ifdef _DEBUG
 	chprintf((BaseSequentialStream *)&SD3, "SHOOT \n");
 #endif
@@ -432,7 +443,7 @@ void odCtrlStopMovement(void)
 	chprintf((BaseSequentialStream *)&SD3, "Stopping movement... \t");
 #endif
 
-	chThdTerminate(odometricRegulatorPtr);
+	odometricRegulatorTerminate();
 	chThdTerminate(odMoveForwardPtr);
 	odRotateTerminate();
 

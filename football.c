@@ -51,7 +51,7 @@ void play(void){
 		ball_position = ball_get_position();
 
 		//ball_position.x = 100000;
-		//ball_position.y = -200000;
+		//ball_position.y = 50000;
 		//ball_position.orientation = 0;
 
 		shooting_position = compute_shooting_position(ball_position);
@@ -59,6 +59,13 @@ void play(void){
 		chprintf((BaseSequentialStream *)&SD3, "SHOOTING POSITION: x = %d um, y = %d um, orientation = %f\n", shooting_position.x, shooting_position.y, shooting_position.orientation);
 
 		odCtrlAddPointToPath(shooting_position.x, shooting_position.y, shooting_position.orientation);
+
+		//while((odCtrlGetPosition().x - shooting_position.x) > 50000)
+		//{
+		//	chThdSleepMilliseconds(200);
+		//}
+		//ball_position = ball_get_position();
+
 		odCtrlAddPointToPath(ball_position.x, ball_position.y, ball_position.orientation);
 		odCtrlAddPointToPath(EPUCK_X_START, EPUCK_Y_START,EPUCK_ORIENTATION_START);
 

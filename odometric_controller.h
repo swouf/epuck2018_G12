@@ -83,5 +83,6 @@ void odCtrlShoot(void);
 
 void odCtrlStopMovement(void);
 
+void odCtrlSetMaxSpeed(int speed);
 
 #endif /* ODOMETRIC_CONTROLLER_H_ */
