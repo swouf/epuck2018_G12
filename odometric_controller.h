@@ -80,9 +80,14 @@ void odCtrlRotateTo(float orientation);
  * /Fait tirer le e-puck dans la balle en se dï¿½plaï¿½ant d'une distance de 7 cm
  * */
 void odCtrlShoot(void);
-
+/*
+ * @brief Stops the e-puck
+ * */
 void odCtrlStopMovement(void);
-
+/*
+ * @brief Sets the e-puck max speed/Règle la vitesse maximale de l'e-puck
+ * @param The max speed/La vitesse maximale de l'e-puck
+ * */
 void odCtrlSetMaxSpeed(int speed);
 
 #endif /* ODOMETRIC_CONTROLLER_H_ */

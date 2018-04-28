@@ -1,8 +1,10 @@
-/*
- * ballSearch.c
+/**
+ * \file    ball_search.c
+ * \brief   Ball position and shooting position
+ * \date	april 2018
+ * \author	Jérémy Jayet (jeremy.jayet@epfl.ch)
+ * \author	Minh Truong (minh.truong@epfl.ch)
  *
- *  Created on: 3 avr. 2018
- *      Author: minh1
  */
 
 #include <stdlib.h>
@@ -92,8 +94,8 @@ uint32_t ball_get_distance(void)
 }
 position_t compute_shooting_position(position_t ball_position){
 	position_t shooting_position;
-	int xb = ball_position.x;
-	int yb = ball_position.y;
+	int32_t xb = ball_position.x;
+	int32_t yb = ball_position.y;
 	float32_t m = ((float)yb)/((float)xb);
 
 	//Compute the square root of 1+m^2 and store the result in pOut
@@ -102,7 +104,7 @@ position_t compute_shooting_position(position_t ball_position){
 	arm_sqrt_f32(pIn, &pOut);
 
 	//pIn = 1+m^2 and pOut = sqrt(1+m^2)
-	shooting_position.x = (xb+m*yb+DISTANCE_EPUCK_BALL*pOut)/pIn;
+	shooting_position.x = (xb+m*yb+DISTANCE_EPUCK_BALL*pOut)/pIn; //calculation detailed in the report
 
 	if(shooting_position.x < xb)
 		shooting_position.x = (xb+m*yb-DISTANCE_EPUCK_BALL*pOut)/pIn;

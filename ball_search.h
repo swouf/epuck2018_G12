@@ -1,8 +1,10 @@
-/*
- * ballSearch.h
+/**
+ * \file    ball_search.c
+ * \brief   Ball position and shooting position
+ * \date	april 2018
+ * \author	Jérémy Jayet (jeremy.jayet@epfl.ch)
+ * \author	Minh Truong (minh.truong@epfl.ch)
  *
- *  Created on: 3 avr. 2018
- *      Author: minh1
  */
 
 #ifndef BALL_SEARCH_H_
