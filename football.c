@@ -47,6 +47,7 @@ void play(void){
 
 		position_t shooting_position;
 		position_t ball_position;
+		BSEMAPHORE_DECL(in_shooting_position, TRUE);
 
 		ball_position = ball_get_position();
 
@@ -58,16 +59,14 @@ void play(void){
 		chprintf((BaseSequentialStream *)&SD3, "BALL POSITION: x = %d um, y = %d um, orientation = %f\n", ball_position.x, ball_position.y, ball_position.orientation);
 		chprintf((BaseSequentialStream *)&SD3, "SHOOTING POSITION: x = %d um, y = %d um, orientation = %f\n", shooting_position.x, shooting_position.y, shooting_position.orientation);
 
-		odCtrlAddPointToPath(shooting_position.x, shooting_position.y, shooting_position.orientation);
+		odCtrlAddPointToPath(shooting_position.x, shooting_position.y, shooting_position.orientation, &in_shooting_position);
 
-		//while((odCtrlGetPosition().x - shooting_position.x) > 50000)
-		//{
-		//	chThdSleepMilliseconds(200);
-		//}
-		//ball_position = ball_get_position();
+		chBSemWait(&in_shooting_position);
 
-		odCtrlAddPointToPath(ball_position.x, ball_position.y, ball_position.orientation);
-		odCtrlAddPointToPath(EPUCK_X_START, EPUCK_Y_START,EPUCK_ORIENTATION_START);
+		ball_position = ball_get_position();
+
+		odCtrlAddPointToPath(ball_position.x, ball_position.y, ball_position.orientation, NULL);
+		odCtrlAddPointToPath(EPUCK_X_START, EPUCK_Y_START,EPUCK_ORIENTATION_START, NULL);
 
 		//odCtrlShoot();
 

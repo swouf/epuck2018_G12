@@ -57,7 +57,7 @@ void odCtrlRotate(float alpha);
  * /Utilise les moteurs de l'e-puck pour le faire se d�placer � une position XY dans le plan et lui donner une orientation d�sir�e.
  * @param The XY target coordinates and the orientation/Les coordonn�es XY et l'orientation d�sir�es
  * */
-void odCtrlAddPointToPath(int x, int y, float orientation);
+void odCtrlAddPointToPath(int x, int y, float orientation, binary_semaphore_t* sem);
 /*
  * @brief Sets the position of the e-puck in the XY plane and its orientation/R�gle la position et l'orientation de l'e-puck
  * @param The XY coordinates and orientation/Les coordon�es XY et l'orientation
