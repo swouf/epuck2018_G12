@@ -37,6 +37,7 @@ static thread_t* ProcessImagePtr	=	NULL;
 
 //semaphore
 static BSEMAPHORE_DECL(image_ready_sem, TRUE);
+static BSEMAPHORE_DECL(processImageRun, TRUE);
 static binary_semaphore_t* ball_detected = NULL;
 
 // Functions prototypes
@@ -75,7 +76,7 @@ static THD_FUNCTION(CaptureImage, arg) {
 
 	dcmi_prepare();
 
-    while(!chThdShouldTerminateX()){
+    while(1){
         //starts a capture
 		dcmi_capture_start();
 		//waits for the capture to be done
@@ -102,7 +103,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 	uint8_t		image[IMAGE_BUFFER_SIZE] = {0};
 	position_t	imagePos;
 
-    while(!chThdShouldTerminateX()){
+    while(1){
     	//waits until an image has been captured
         chBSemWait(&image_ready_sem);
 
@@ -157,8 +158,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 				chprintf((BaseSequentialStream *)&SD3, "Ball Detected !!!\n");
 #endif
 				chBSemSignal(ball_detected);
-				chThdTerminate(CaptureImagePtr);
-				chThdTerminate(ProcessImagePtr);
+				break;
 			}
 		}
 		/*
@@ -295,6 +295,7 @@ uint16_t pImGetLinePosition(void){
 void pImProcessImageStart(void){
 	ProcessImagePtr = chThdCreateStatic(waProcessImage, sizeof(waProcessImage), NORMALPRIO, ProcessImage, NULL);
 	CaptureImagePtr = chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO, CaptureImage, NULL);
+	chBSemSignal(&processImageRun);
 }
 void pImSetBallDetectionSemaphore(binary_semaphore_t* sem){
 	ball_detected = sem;
@@ -429,4 +430,10 @@ static uint8_t pImCompareColors(pixel_t color, pixel_t colorRef)
 	//pImTest(dotProduct);
 
 	return cosAlpha;
+}
+uint16_t pIm_get_distance(void)
+{
+	uint16_t distance = 0;
+	distance = LENS_DIAMETER_IN_PIXELS*BALL_SIZE/(2*ballWidth);
+	return distance;
 }
