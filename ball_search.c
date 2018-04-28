@@ -29,25 +29,27 @@ void ball_search(void)
 
 		odCtrlSetMaxSpeed(200);
 
-		odCtrlAddPointToPath(position.x, position.y, position.orientation+(PI/2), NULL);
-		odCtrlAddPointToPath(position.x, position.y, position.orientation-(PI/2), NULL);
-		odCtrlAddPointToPath(position.x, position.y, position.orientation+(PI/2), NULL);
-		odCtrlAddPointToPath(position.x, position.y, position.orientation-(PI/2), NULL);
-
 		pImProcessImageStart();
+
+		odCtrlAddPointToPath(position.x, position.y, position.orientation+(PI/2), NULL);
+		odCtrlAddPointToPath(position.x, position.y, position.orientation-(PI/2), NULL);
+		odCtrlAddPointToPath(position.x, position.y, position.orientation+(PI/2), NULL);
+		odCtrlAddPointToPath(position.x, position.y, position.orientation-(PI/2), NULL);
+		odCtrlAddPointToPath(position.x, position.y, position.orientation+(PI/2), NULL);
+		odCtrlAddPointToPath(position.x, position.y, position.orientation-(PI/2), NULL);
+		odCtrlAddPointToPath(position.x, position.y, position.orientation+(PI/2), NULL);
+		odCtrlAddPointToPath(position.x, position.y, position.orientation-(PI/2), &ball_spotted);
 
 	#ifdef _DEBUG
 		chprintf((BaseSequentialStream *)&SD3, "pImProcessImageStart OK !\n");
 	#endif
 
 	chBSemWait(&ball_spotted);
-    odCtrlStopMovement();
-	set_rgb_led(LED2, 100, 0, 100);
-	set_rgb_led(LED4, 100, 0, 100);
-	set_rgb_led(LED6, 100, 0, 100);
-	set_rgb_led(LED8, 100, 0, 100);
 
-		odCtrlSetMaxSpeed(2200);
+    odCtrlStopMovement();
+	set_body_led(1);
+
+	odCtrlSetMaxSpeed(2200);
 
 }
 
@@ -55,7 +57,7 @@ position_t ball_get_position(void)
 {
 	ball_search();
 
-	position_t epuck_position;
+//	position_t epuck_position;
 	position_t ball_position;
 	uint32_t epuck_ball_distance;
 	float ball_direction = 0;

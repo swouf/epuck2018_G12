@@ -68,30 +68,32 @@ void play(void){
 		odCtrlAddPointToPath(shooting_position.x, shooting_position.y, shooting_position.orientation, &in_shooting_position);
 
 		chBSemWait(&in_shooting_position);
+		chBSemWait(&in_shooting_position);
 
-//		uint32_t distance = 3*DISTANCE_EPUCK_BALL;
-//
-//		while(distance > 2*DISTANCE_EPUCK_BALL)
-//		{
-//			distance = ball_get_distance();
-//
-//			odCtrlMoveForward(distance-(2*DISTANCE_EPUCK_BALL), &ball_found);
-//
-//			chBSemWait(&ball_found);
-//		}
-//
-//		odCtrlMoveForward(distance, &ball_found);
-//
-//		chBSemWait(&ball_found);
-//
-//		odCtrlAddPointToPath(EPUCK_X_START, EPUCK_Y_START,EPUCK_ORIENTATION_START, NULL);
+#ifdef _DEBUG
+		chprintf((BaseSequentialStream *)&SD3, "Epuck in shooting position\n");
+#endif
+
+
+		uint32_t distance = 0;
+
+		distance = ball_get_distance();
+
+		odCtrlMoveForward(distance, &ball_found);
+
+#ifdef _DEBUG
+		chprintf((BaseSequentialStream *)&SD3, "SHOOTING the ball at a distance %d\n", distance);
+#endif
+
+		chBSemWait(&ball_found);
+
+#ifdef _DEBUG
+		chprintf((BaseSequentialStream *)&SD3, "Back home ...\n", distance);
+#endif
+
+		odCtrlAddPointToPath(EPUCK_X_START, EPUCK_Y_START,EPUCK_ORIENTATION_START, NULL);
 
 	    chThdSleepMilliseconds(200);
 
-	    }while(0);
-
-	    while (1) {
-	    	chprintf((BaseSequentialStream *)&SD3, "TIME OF FLIGHT DISTANCE = %d mm\n", tof_get_distance());
-	    	chThdSleepSeconds(3);
-	    }
+	    }while(1);
 }

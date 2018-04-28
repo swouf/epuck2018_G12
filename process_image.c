@@ -125,7 +125,10 @@ static THD_FUNCTION(ProcessImage, arg) {
 				uint16_t distance			= tof_get_distance();
 				uint16_t expectedBallWidth	= tof_get_ball_pixel_width(distance);
 
-				if((abs(ballWidth - expectedBallWidth) < MAX_DIFF_BALL_WIDTH) && (distance < MAX_DISTANCE)&& (ballWidth > 0))
+				if(((abs(ballWidth - expectedBallWidth) < MAX_DIFF_BALL_WIDTH) &&\
+						(distance < MAX_DISTANCE) &&\
+						(ballWidth > 0) &&\
+						(abs(line_position-(IMAGE_BUFFER_SIZE/2))<100)))
 				{
 #ifdef _DEBUG
 					chprintf((BaseSequentialStream *)&SD3, "Color : %x\n", img_buff_ptr[line_position]);
@@ -256,7 +259,8 @@ void pImProcessImageStart(void){
 	if(CaptureImagePtr == NULL){CaptureImagePtr = chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO, CaptureImage, NULL);}
 	chBSemSignal(&processImageRun);
 }
-void pImSetBallDetectionSemaphore(binary_semaphore_t* sem){
+void pImSetBallDetectionSemaphore(binary_semaphore_t* sem)
+{
 	ball_detected = sem;
 }
 void pImSetMode(pIm_MODE_t mode)

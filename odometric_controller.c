@@ -128,10 +128,6 @@ static THD_FUNCTION(odMoveForward, lengthPtr) {
 		chprintf((BaseSequentialStream *)&SD3, "linearStep = %d\t linearPos = %d\n", linearStep, linearPos);
 #endif
 	}
-
-	//position.x += (int) (cosOrientation*linearPos);
-	//position.y += (int) (sinOrientation*linearPos);
-
 	odMoveForwardPtr = NULL;
 }
 
@@ -221,7 +217,7 @@ static THD_FUNCTION(odRotate, orientationPtr) {
 	} while(1);
 }
 
-static THD_WORKING_AREA(waOdometricRegulator, 1024);
+static THD_WORKING_AREA(waOdometricRegulator, 2048);
 static THD_FUNCTION(odometricRegulator, arg) {
 
 	float xd, yd, alpha, ratio, length;
@@ -310,7 +306,6 @@ static THD_FUNCTION(odometricRegulator, arg) {
 				if((target->orientation > 0) && !odometricRegulatorShouldTerminate)
 				{
 					odCtrlRotateTo(target->orientation);
-					//chprintf((BaseSequentialStream *)&SD3, "BORDEL %x\n", odRotatePtr);
 					chBSemWait(&odRotateEnd);
 				}
 			}
