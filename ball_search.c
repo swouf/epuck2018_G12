@@ -52,7 +52,8 @@ position_t ball_get_position(void)
 
 	position_t epuck_actual_position = odCtrlGetPosition();
 
-	epuck_ball_distance = tof_get_distance()*1000;
+	//epuck_ball_distance = tof_get_distance()*1000;
+	epuck_ball_distance = pIm_get_distance()*1000;
 	ball_direction = epuck_actual_position.orientation; // @suppress("Field cannot be resolved")
 
 	ball_position.x = epuck_actual_position.x - epuck_ball_distance*arm_cos_f32(PI-ball_direction);
