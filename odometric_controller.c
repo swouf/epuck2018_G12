@@ -21,12 +21,19 @@
 #include <motors.h>
 #include <odometric_controller.h>
 
+typedef struct point_t{
+	int x;
+	int y;
+	float orientation;
+	binary_semaphore_t* endSem;
+}point_t;
+
 static const float stepLength	=	WHEEL_CIRC/2000;
 
 static position_t	position;
-static position_t	path[PATH_BUFFER_SIZE];
-static position_t*	pathPtr								= path;
-static position_t*	target								= path;
+static point_t	path[PATH_BUFFER_SIZE];
+static point_t*	pathPtr								= path;
+static point_t*	target								= path;
 static int			maxSpeed							= MOTOR_SPEED_LIMIT;
 static uint8_t		odRotateShouldTerminate				= 0;
 static uint8_t		odometricRegulatorShouldTerminate	= 0;
@@ -312,7 +319,7 @@ static THD_FUNCTION(odometricRegulator, arg) {
 #endif
 			if(!odometricRegulatorShouldTerminate){chThdSleepMilliseconds(500);}
 		}
-
+		if(target->endSem != NULL){chBSemSignal(target->endSem);}
 		chBSemSignal(&odometricRegulatorEnd);
 #ifdef _DEBUG_PATH
 				chprintf((BaseSequentialStream *)&SD3, "odometricRegulatorEnd : SIGNAL ENVOYÉ\n");
@@ -331,8 +338,8 @@ void odCtrlPause(void);
 
 void odCtrlResume(void);
 
-void odCtrlAddPointToPath(int x, int y, float orientation){
-	position_t* a = pathPtr+1;
+void odCtrlAddPointToPath(int x, int y, float orientation, binary_semaphore_t* sem){
+	point_t* a = pathPtr+1;
 
 	if(a > &(path[PATH_BUFFER_SIZE]))
 	{
@@ -342,6 +349,7 @@ void odCtrlAddPointToPath(int x, int y, float orientation){
 	a->x = x;
 	a->y = y;
 	a->orientation = orientation;
+	a->endSem = sem;
 
 	pathPtr = a;
 
@@ -375,11 +383,11 @@ void odCtrlRotate(float alpha)
 
 	for(int i = 0;alpha > PI;i++)
 	{
-		odCtrlAddPointToPath(actualPos.x, actualPos.y, ((i%2) + 1)*PI);
+		odCtrlAddPointToPath(actualPos.x, actualPos.y, ((i%2) + 1)*PI, NULL);
 		alpha -= 2*((i%2))*PI;
 	}
 
-	odCtrlAddPointToPath(actualPos.x, actualPos.y, alpha);
+	odCtrlAddPointToPath(actualPos.x, actualPos.y, alpha, NULL);
 }
 void odCtrlMoveForward(int length)
 {

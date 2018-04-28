@@ -28,10 +28,10 @@ position_t ball_get_position(void)
 
 	odCtrlSetMaxSpeed(200);
 
-	odCtrlAddPointToPath(position.x, position.y, position.orientation+(PI/2));
-	odCtrlAddPointToPath(position.x, position.y, position.orientation-(PI/2));
-	odCtrlAddPointToPath(position.x, position.y, position.orientation+(PI/2));
-	odCtrlAddPointToPath(position.x, position.y, position.orientation-(PI/2));
+	odCtrlAddPointToPath(position.x, position.y, position.orientation+(PI/2), NULL);
+	odCtrlAddPointToPath(position.x, position.y, position.orientation-(PI/2), NULL);
+	odCtrlAddPointToPath(position.x, position.y, position.orientation+(PI/2), NULL);
+	odCtrlAddPointToPath(position.x, position.y, position.orientation-(PI/2), NULL);
 
 	pImProcessImageStart();
 
