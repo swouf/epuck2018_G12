@@ -15,7 +15,7 @@
 #define PXTOMM					31400.0f //experimental value
 #define GOAL_DISTANCE 			10.0f
 #define MAX_DISTANCE 			1000
-#define MAX_DIFF_BALL_WIDTH		30
+#define MAX_DIFF_BALL_WIDTH		50
 #define N_MEAN					4
 #define FOCUS_TOLERANCE			10
 

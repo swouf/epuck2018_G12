@@ -56,21 +56,19 @@ void play(void){
 		//ball_position.orientation = 0;
 
 		shooting_position = compute_shooting_position(ball_position);
+
+#ifdef _DEBUG
 		chprintf((BaseSequentialStream *)&SD3, "BALL POSITION: x = %d um, y = %d um, orientation = %f\n", ball_position.x, ball_position.y, ball_position.orientation);
 		chprintf((BaseSequentialStream *)&SD3, "SHOOTING POSITION: x = %d um, y = %d um, orientation = %f\n", shooting_position.x, shooting_position.y, shooting_position.orientation);
+#endif
 
 		odCtrlAddPointToPath(shooting_position.x, shooting_position.y, shooting_position.orientation, &in_shooting_position);
 
 		chBSemWait(&in_shooting_position);
 
-		ball_position = ball_get_position();
+		odCtrlMoveForward(ball_get_distance());
 
-		odCtrlAddPointToPath(ball_position.x, ball_position.y, ball_position.orientation, NULL);
 		odCtrlAddPointToPath(EPUCK_X_START, EPUCK_Y_START,EPUCK_ORIENTATION_START, NULL);
-
-		//odCtrlShoot();
-
-//		odCtrlAddPointToPath(200000, 0, PI);
 
 	    chThdSleepMilliseconds(200);
 

@@ -11,8 +11,8 @@
 
 //#define _DEBUG_ROTATE
 //#define _DEBUG_FORWARD
-#define _DEBUG_PATH
-#define _DEBUG_ODCTRL
+//#define _DEBUG_PATH
+//#define _DEBUG_ODCTRL
 
 #define ROTATIONAL_KP	1000
 #define ROTATIONAL_KI	2

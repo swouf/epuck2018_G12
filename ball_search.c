@@ -18,32 +18,38 @@
 #include <process_image.h>
 #include <audio/play_melody.h>
 
-position_t ball_get_position(void)
+void ball_search(void)
 {
 	position_t position = odCtrlGetPosition();
 
-	BSEMAPHORE_DECL(ball_spotted, TRUE);
+		BSEMAPHORE_DECL(ball_spotted, TRUE);
 
-	pImSetBallDetectionSemaphore(&ball_spotted);
+		pImSetBallDetectionSemaphore(&ball_spotted);
 
-	odCtrlSetMaxSpeed(200);
+		odCtrlSetMaxSpeed(200);
 
-	odCtrlAddPointToPath(position.x, position.y, position.orientation+(PI/2), NULL);
-	odCtrlAddPointToPath(position.x, position.y, position.orientation-(PI/2), NULL);
-	odCtrlAddPointToPath(position.x, position.y, position.orientation+(PI/2), NULL);
-	odCtrlAddPointToPath(position.x, position.y, position.orientation-(PI/2), NULL);
+		odCtrlAddPointToPath(position.x, position.y, position.orientation+(PI/2), NULL);
+		odCtrlAddPointToPath(position.x, position.y, position.orientation-(PI/2), NULL);
+		odCtrlAddPointToPath(position.x, position.y, position.orientation+(PI/2), NULL);
+		odCtrlAddPointToPath(position.x, position.y, position.orientation-(PI/2), NULL);
 
-	pImProcessImageStart();
+		pImProcessImageStart();
 
-#ifdef _DEBUG
-	chprintf((BaseSequentialStream *)&SD3, "pImProcessImageStart OK !\n");
-#endif
+	#ifdef _DEBUG
+		chprintf((BaseSequentialStream *)&SD3, "pImProcessImageStart OK !\n");
+	#endif
 
-	chBSemWait(&ball_spotted);
+		chBSemWait(&ball_spotted);
 
-	odCtrlStopMovement();
+		odCtrlStopMovement();
 
-	odCtrlSetMaxSpeed(2200);
+		odCtrlSetMaxSpeed(2200);
+
+}
+
+position_t ball_get_position(void)
+{
+	ball_search();
 
 	position_t epuck_position;
 	position_t ball_position;
@@ -54,6 +60,11 @@ position_t ball_get_position(void)
 
 	//epuck_ball_distance = tof_get_distance()*1000;
 	epuck_ball_distance = pIm_get_distance()*1000;
+
+#ifdef _DEBUG
+	chprintf((BaseSequentialStream *)&SD3, "epuck_ball_distance = %d !\n", epuck_ball_distance);
+#endif
+
 	ball_direction = epuck_actual_position.orientation; // @suppress("Field cannot be resolved")
 
 	ball_position.x = epuck_actual_position.x - epuck_ball_distance*arm_cos_f32(PI-ball_direction);
@@ -65,6 +76,13 @@ position_t ball_get_position(void)
 	ball_position.orientation = 0;
 
 	return ball_position;
+}
+uint32_t ball_get_distance(void)
+{
+	uint32_t epuck_ball_distance;
+	ball_search();
+	epuck_ball_distance = pIm_get_distance()*1000;
+	return epuck_ball_distance;
 }
 position_t compute_shooting_position(position_t ball_position){
 	position_t shooting_position;

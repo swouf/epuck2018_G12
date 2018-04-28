@@ -92,49 +92,52 @@ static THD_FUNCTION(ProcessImage, arg) {
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
 
-#ifdef _DEBUG
-	chprintf((BaseSequentialStream *)&SD3, " Launching ProcessImage ! \n");
-#endif
-
 	uint16_t	line_pos_center	=	0;
 
 	uint8_t		*img_buff_ptr;
 	uint8_t		image[IMAGE_BUFFER_SIZE] = {0};
 	position_t	imagePos;
+	do{
+		chBSemWait(&processImageRun);
 
-    while(1){
-    	//waits until an image has been captured
-        chBSemWait(&image_ready_sem);
-
-        imagePos = odCtrlGetPosition();
-
-		//gets the pointer to the array filled with the last image in RGB565
-		img_buff_ptr = dcmi_get_last_image_ptr();
-
-		//pImExtractColor((uint16_t*)img_buff_ptr, image, IMAGE_BUFFER_SIZE);
-		pImExtractBlack((uint16_t*)img_buff_ptr, image, IMAGE_BUFFER_SIZE);
-
-		//SendUint8ToMatlab(image, IMAGE_BUFFER_SIZE);
-
-		if(processMode == SEARCH_BALL)
-		{
-			//search for a line in the image and gets its width in pixels
-			ballWidth					= pImExtractLineWidth(image);
-			uint16_t distance			= tof_get_distance();
-			uint16_t expectedBallWidth	= tof_get_ball_pixel_width(distance);
-
-			if((abs(ballWidth - expectedBallWidth) < MAX_DIFF_BALL_WIDTH) & (distance < MAX_DISTANCE))
-			{
 #ifdef _DEBUG
-				chprintf((BaseSequentialStream *)&SD3, "Color : %x\n", img_buff_ptr[line_position]);
-				chprintf((BaseSequentialStream *)&SD3, "ballWidth = %d \t expectedBallWidth = %d\t distance = %d \n", ballWidth, expectedBallWidth, distance);
-				chprintf((BaseSequentialStream *)&SD3, "Ball Detected !!!\n");
+		chprintf((BaseSequentialStream *)&SD3, " Launching ProcessImage ! \n");
 #endif
-				chBSemSignal(ball_detected);
-				break;
+
+		while(1){
+			//waits until an image has been captured
+			chBSemWait(&image_ready_sem);
+
+			imagePos = odCtrlGetPosition();
+
+			//gets the pointer to the array filled with the last image in RGB565
+			img_buff_ptr = dcmi_get_last_image_ptr();
+
+			//pImExtractColor((uint16_t*)img_buff_ptr, image, IMAGE_BUFFER_SIZE);
+			pImExtractBlack((uint16_t*)img_buff_ptr, image, IMAGE_BUFFER_SIZE);
+
+			//SendUint8ToMatlab(image, IMAGE_BUFFER_SIZE);
+
+			if(processMode == SEARCH_BALL)
+			{
+				//search for a line in the image and gets its width in pixels
+				ballWidth					= pImExtractLineWidth(image);
+				uint16_t distance			= tof_get_distance();
+				uint16_t expectedBallWidth	= tof_get_ball_pixel_width(distance);
+
+				if((abs(ballWidth - expectedBallWidth) < MAX_DIFF_BALL_WIDTH) && (distance < MAX_DISTANCE)&& (ballWidth > 0))
+				{
+#ifdef _DEBUG
+					chprintf((BaseSequentialStream *)&SD3, "Color : %x\n", img_buff_ptr[line_position]);
+					chprintf((BaseSequentialStream *)&SD3, "ballWidth = %d \t expectedBallWidth = %d\t distance = %d \n", ballWidth, expectedBallWidth, distance);
+					chprintf((BaseSequentialStream *)&SD3, "Ball Detected !!!\n");
+#endif
+					chBSemSignal(ball_detected);
+					break;
+				}
 			}
 		}
-    }
+	}while(1);
 }
 
 /**********		FUNCTIONS		**********/

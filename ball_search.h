@@ -10,10 +10,13 @@
 
 #include <odometric_controller.h>
 /*
- * @brief Computes the position of the ball by using the sensor/Calcule la position de la balle en utilisant les données du capteur
+ * @brief Computes the position of the ball by using the sensor/Calcule la position de la balle en utilisant les donnï¿½es du capteur
  * @return The position of the ball/La position de la balle
  * */
 position_t ball_get_position(void);
+
+
+uint32_t ball_get_distance(void);
 /*
  * @brief Computes the shooting position of the e-puck by knowing the position of the ball/Calcule la position de tir du e-puck
  * @param The position of the ball/La position de la balle
