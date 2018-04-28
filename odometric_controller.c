@@ -304,7 +304,7 @@ static THD_FUNCTION(odometricRegulator, arg) {
 				}
 				if((arm_sqrt_f32(lengthSquared, &length) == ARM_MATH_SUCCESS) && !odometricRegulatorShouldTerminate)
 				{
-					odCtrlMoveForward((int)length);
+					odCtrlMoveForward((int)length, NULL);
 					if(odMoveForwardPtr){chThdWait(odMoveForwardPtr);}
 				}
 				if((target->orientation > 0) && !odometricRegulatorShouldTerminate)
@@ -389,12 +389,14 @@ void odCtrlRotate(float alpha)
 
 	odCtrlAddPointToPath(actualPos.x, actualPos.y, alpha, NULL);
 }
-void odCtrlMoveForward(int length)
+void odCtrlMoveForward(int length, binary_semaphore_t* sem)
 {
 	static int a = 0;
 	a = length;
 	if(odMoveForwardPtr) chThdWait(odMoveForwardPtr);
 	odMoveForwardPtr = chThdCreateStatic(waOdMoveForward, sizeof(waOdMoveForward), NORMALPRIO, odMoveForward, &a);
+
+	if(target->endSem != NULL){chBSemSignal(target->endSem);}
 }
 
 
@@ -455,10 +457,9 @@ void odCtrlStopMovement(void)
 	odRotateTerminate();
 
 	//if(odMoveForwardPtr) {chThdWait(odMoveForwardPtr);}
-	systime_t temps = chVTGetSystemTime();
 
-	chBSemWaitTimeout(&odRotateEnd, MS2ST(100)+temps);
-	chBSemWaitTimeout(&odometricRegulatorEnd, MS2ST(100)+temps);
+	chBSemWaitTimeout(&odRotateEnd, MS2ST(100));
+	chBSemWaitTimeout(&odometricRegulatorEnd, MS2ST(100));
 
 	//if(odometricRegulator) {chThdWait(odometricRegulatorPtr);}
 

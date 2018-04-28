@@ -17,6 +17,7 @@
 #include <odometric_controller.h>
 #include <process_image.h>
 #include <audio/play_melody.h>
+#include <leds.h>
 
 void ball_search(void)
 {
@@ -39,9 +40,12 @@ void ball_search(void)
 		chprintf((BaseSequentialStream *)&SD3, "pImProcessImageStart OK !\n");
 	#endif
 
-		chBSemWait(&ball_spotted);
-
-		odCtrlStopMovement();
+	chBSemWait(&ball_spotted);
+    odCtrlStopMovement();
+	set_rgb_led(LED2, 100, 0, 100);
+	set_rgb_led(LED4, 100, 0, 100);
+	set_rgb_led(LED6, 100, 0, 100);
+	set_rgb_led(LED8, 100, 0, 100);
 
 		odCtrlSetMaxSpeed(2200);
 
@@ -74,7 +78,7 @@ position_t ball_get_position(void)
 //		ball_position.x = 10000;
 //		ball_position.y = -100000;
 	ball_position.orientation = 0;
-
+	clear_leds();
 	return ball_position;
 }
 uint32_t ball_get_distance(void)

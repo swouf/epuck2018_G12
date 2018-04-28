@@ -45,9 +45,12 @@ void play(void){
 
 	    odCtrlSetPosition(EPUCK_X_START, EPUCK_Y_START, EPUCK_ORIENTATION_START);
 
+	    do{
+
 		position_t shooting_position;
 		position_t ball_position;
 		BSEMAPHORE_DECL(in_shooting_position, TRUE);
+		BSEMAPHORE_DECL(ball_found, TRUE);
 
 		ball_position = ball_get_position();
 
@@ -66,11 +69,26 @@ void play(void){
 
 		chBSemWait(&in_shooting_position);
 
-		odCtrlMoveForward(ball_get_distance());
-
-		odCtrlAddPointToPath(EPUCK_X_START, EPUCK_Y_START,EPUCK_ORIENTATION_START, NULL);
+//		uint32_t distance = 3*DISTANCE_EPUCK_BALL;
+//
+//		while(distance > 2*DISTANCE_EPUCK_BALL)
+//		{
+//			distance = ball_get_distance();
+//
+//			odCtrlMoveForward(distance-(2*DISTANCE_EPUCK_BALL), &ball_found);
+//
+//			chBSemWait(&ball_found);
+//		}
+//
+//		odCtrlMoveForward(distance, &ball_found);
+//
+//		chBSemWait(&ball_found);
+//
+//		odCtrlAddPointToPath(EPUCK_X_START, EPUCK_Y_START,EPUCK_ORIENTATION_START, NULL);
 
 	    chThdSleepMilliseconds(200);
+
+	    }while(0);
 
 	    while (1) {
 	    	chprintf((BaseSequentialStream *)&SD3, "TIME OF FLIGHT DISTANCE = %d mm\n", tof_get_distance());

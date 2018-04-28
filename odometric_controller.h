@@ -72,7 +72,7 @@ position_t odCtrlGetPosition(void);
  * @brief Makes the e-puck move forward for a distance/Fait avancer l'e-puck d'une distance donn�e
  * @param The distance the e-puck travels/La distance de parcours
  * */
-void odCtrlMoveForward(int length);
+void odCtrlMoveForward(int length, binary_semaphore_t* sem);
 
 void odCtrlRotateTo(float orientation);
 /*
