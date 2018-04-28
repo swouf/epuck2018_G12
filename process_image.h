@@ -12,7 +12,7 @@
 #define IMAGE_BUFFER_SIZE		640
 #define WIDTH_SLOPE				5
 #define MIN_LINE_WIDTH			30
-#define PXTOCM					1570.0f //experimental value
+#define PXTOMM					31400.0f //experimental value
 #define GOAL_DISTANCE 			10.0f
 #define MAX_DISTANCE 			1000
 #define MAX_DIFF_BALL_WIDTH		30
