@@ -1,8 +1,9 @@
-/*
- * lib.h
+/**
+ * \file    football.h
+ * \brief	Launches the simulation
+ * \author	Jérémy (jeremy.jayet@epfl.ch)
+ * \author	Minh Truong (minh.truong@epfl.ch)
  *
- *  Created on: 19 Apr 2018
- *      Author: truong
  */
 
 #ifndef FOOTBALL_H_

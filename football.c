@@ -1,7 +1,7 @@
 /**
  * \file    football.c
- * \brief
- * \author	JÃ©rÃ©my Jayet (jeremy.jayet@epfl.ch)
+ * \brief	Launches the simulation
+ * \author	Jérémy (jeremy.jayet@epfl.ch)
  * \author	Minh Truong (minh.truong@epfl.ch)
  *
  */

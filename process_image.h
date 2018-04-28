@@ -33,11 +33,28 @@ typedef struct{
 	uint8_t g;
 	uint8_t b;
 } pixel_t;
-
+/*
+ * @brief Initialization of the camera of the e-puck/Initialisation de la caméra de l'e-puck
+ * */
 void pImProcessImageStart(void);
+/*
+ * @return The horizontal position of the line/La position en X de la ligne
+ * */
 uint16_t pImGetLinePosition(void);
+/*
+ * @brief Setting a semaphore when the ball is detected/Mets un sémaphore à 1 quand la balle est détectée
+ * @param Semaphore address/L'adresse du sémaphore
+ * */
 void pImSetBallDetectionSemaphore(binary_semaphore_t* sem);
+/*
+ * @brief Computes the position of the e-puck
+ * @param The distances between the e-puck and the four walls of the squared arena
+ * */
 void pImSetMode(pIm_MODE_t mode);
+/*
+ * @brief Computes the position of the e-puck
+ * @param The distances between the e-puck and the four walls of the squared arena
+ * */
 void pImExtractColor(uint16_t* input, uint8_t* output, unsigned int size);
 
 #endif /* PROCESS_IMAGE_H_ */

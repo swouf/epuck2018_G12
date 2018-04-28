@@ -1,8 +1,9 @@
-/*
- * tof.h
+/**
+ * \file    tof.h
+ * \brief   tof sensor wrapper
+ * \author	Jérémy Jayet (jeremy.jayet@epfl.ch)
+ * \author	Minh Truong (minh.truong@epfl.ch)
  *
- *  Created on: 1 avr. 2018
- *      Author: Minh
  */
 
 #ifndef TOF_H_

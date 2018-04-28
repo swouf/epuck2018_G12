@@ -1,7 +1,7 @@
 /**
  * \file    tof.c
  * \brief   tof sensor wrapper
- * \author	JÃ©rÃ©my Jayet (jeremy.jayet@epfl.ch)
+ * \author	Jérémy Jayet (jeremy.jayet@epfl.ch)
  * \author	Minh Truong (minh.truong@epfl.ch)
  *
  */
@@ -23,7 +23,7 @@ void tof_init(void)
 uint16_t tof_get_distance(void)
 {
 	uint16_t tof_measured = VL53L0X_get_dist_mm();
-	uint16_t tof_corrected = (uint16_t)((0.684*tof_measured-0.6604)+(EPUCK_CIRC/2)+(BALL_SIZE/2));
+	uint16_t tof_corrected = (uint16_t)((0.684*tof_measured-0.6604)+(EPUCK_CIRC/2)+(BALL_SIZE/2)); //correction found experimentally, detailed in the report
 	return tof_corrected;
 }
 void tof_stop(void)
