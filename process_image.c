@@ -293,8 +293,8 @@ uint16_t pImGetLinePosition(void){
 
 
 void pImProcessImageStart(void){
-	ProcessImagePtr = chThdCreateStatic(waProcessImage, sizeof(waProcessImage), NORMALPRIO, ProcessImage, NULL);
-	CaptureImagePtr = chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO, CaptureImage, NULL);
+	if(ProcessImagePtr == NULL){ProcessImagePtr = chThdCreateStatic(waProcessImage, sizeof(waProcessImage), NORMALPRIO, ProcessImage, NULL);}
+	if(CaptureImagePtr == NULL){CaptureImagePtr = chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO, CaptureImage, NULL);}
 	chBSemSignal(&processImageRun);
 }
 void pImSetBallDetectionSemaphore(binary_semaphore_t* sem){

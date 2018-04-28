@@ -318,9 +318,9 @@ static THD_FUNCTION(odometricRegulator, arg) {
 #ifdef _DEBUG_PATH
 				chprintf((BaseSequentialStream *)&SD3, "Fin de la BOUCLE !\n");
 #endif
+			if(target->endSem != NULL){chBSemSignal(target->endSem);}
 			if(!odometricRegulatorShouldTerminate){chThdSleepMilliseconds(500);}
 		}
-		if(target->endSem != NULL){chBSemSignal(target->endSem);}
 		chBSemSignal(&odometricRegulatorEnd);
 #ifdef _DEBUG_PATH
 				chprintf((BaseSequentialStream *)&SD3, "odometricRegulatorEnd : SIGNAL ENVOYÉ\n");
