@@ -8,9 +8,8 @@
 #ifndef TOF_H_
 #define TOF_H_
 
-#define BALL_SIZE 37
+#define BALL_SIZE 40
 #define LENS_DIAMETER_IN_PIXELS 1445
-
 
 /*
  * @brief Initialization of the time-of-flight sensor/Initialise le capteur time-of-flight
