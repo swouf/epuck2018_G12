@@ -67,7 +67,7 @@ position_t ball_get_position(void)
 //		ball_position.x = 10000;
 //		ball_position.y = -100000;
 	ball_position.orientation = 0;
-
+	clear_leds();
 	return ball_position;
 }
 position_t compute_shooting_position(position_t ball_position){
