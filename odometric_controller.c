@@ -14,9 +14,8 @@
 #include <math.h>
 #include <stdbool.h>
 
-#ifdef _DEBUG
 #include <chprintf.h>
-#endif
+
 
 #include <main.h>
 #include <motors.h>

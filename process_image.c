@@ -433,7 +433,6 @@ static uint8_t pImCompareColors(pixel_t color, pixel_t colorRef)
 }
 uint16_t pIm_get_distance(void)
 {
-	uint16_t distance = 0;
-	distance = LENS_DIAMETER_IN_PIXELS*BALL_SIZE/(2*ballWidth);
+	uint16_t distance = PXTOCM/ballWidth;
 	return distance;
 }
