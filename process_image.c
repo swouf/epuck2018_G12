@@ -68,7 +68,6 @@ static THD_FUNCTION(CaptureImage, arg) {
 #else
 	po8030_advanced_config(FORMAT_RGB565, 0, 224, IMAGE_BUFFER_SIZE, N_MEAN, SUBSAMPLING_X1, SUBSAMPLING_X1);
 #endif
-	//po8030_set_awb(0);
 	po8030_set_rgb_gain(0x48, 0x48, 0x48);
 	po8030_set_rgb_gain(0, 0x48, 0);
 	dcmi_enable_double_buffering();
@@ -112,31 +111,6 @@ static THD_FUNCTION(ProcessImage, arg) {
 		//gets the pointer to the array filled with the last image in RGB565
 		img_buff_ptr = dcmi_get_last_image_ptr();
 
-		/*
-		//Extracts only the red pixels
-		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; i+=2){
-			//extracts first 5bits of the first byte
-			//takes nothing from the second byte
-			image[i/2] = (uint8_t)img_buff_ptr[i]&0xF8;
-		}
-		*/
-
-#ifdef _DEBUG
-		static int t = 1;
-		if(t)
-		{
-		uint16_t testColor[5] = {0x18E6, 0x18E8, 0x6332, 0x426E, 0x855F2F};
-		uint8_t	testViolet[5] = {0};
-		pImExtractColor(&testColor, &testViolet, 5);
-
-		for(int i = 0; i<5;i++)
-		{
-			chprintf((BaseSequentialStream *)&SD3, "TestViolet = %x\n", testViolet[i]);
-		}
-		t=0;
-		}
-#endif
-
 		//pImExtractColor((uint16_t*)img_buff_ptr, image, IMAGE_BUFFER_SIZE);
 		pImExtractBlack((uint16_t*)img_buff_ptr, image, IMAGE_BUFFER_SIZE);
 
@@ -151,7 +125,6 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 			if((abs(ballWidth - expectedBallWidth) < MAX_DIFF_BALL_WIDTH) & (distance < MAX_DISTANCE))
 			{
-				//pImSetMode(FOCUS_ON_BALL);
 #ifdef _DEBUG
 				chprintf((BaseSequentialStream *)&SD3, "Color : %x\n", img_buff_ptr[line_position]);
 				chprintf((BaseSequentialStream *)&SD3, "ballWidth = %d \t expectedBallWidth = %d\t distance = %d \n", ballWidth, expectedBallWidth, distance);
@@ -161,23 +134,6 @@ static THD_FUNCTION(ProcessImage, arg) {
 				break;
 			}
 		}
-		/*
-		else if (processMode == FOCUS_ON_BALL)
-		{
-			line_pos_center = line_position - IMAGE_BUFFER_SIZE/2;
-			if(line_pos_center < FOCUS_TOLERANCE)
-			{
-
-			}
-			else
-			{
-				int speed = 2200*(line_pos_center/(IMAGE_BUFFER_SIZE/2));
-
-				left_motor_set_speed(speed);
-				right_motor_set_speed(-speed);
-			}
-		}
-		*/
     }
 }
 
