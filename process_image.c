@@ -433,6 +433,6 @@ static uint8_t pImCompareColors(pixel_t color, pixel_t colorRef)
 }
 uint16_t pIm_get_distance(void)
 {
-	uint16_t distance = PXTOCM/ballWidth;
+	uint16_t distance = PXTOMM/ballWidth;
 	return distance;
 }
