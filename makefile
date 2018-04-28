@@ -17,7 +17,7 @@ CSRC += ./main.c \
 		./process_image.c \
 		./ball_search.c \
 		./football.c \
-
+		./positioning.c \
 #Header folders to include
 INCDIR += 
 
