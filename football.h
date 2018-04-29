@@ -13,13 +13,16 @@
 #define EPUCK_CIRC 166.504f
 #define PI 3.1415927410125732421875f
 
-#define DISTANCE_EPUCK_BALL 70000
+#define DISTANCE_EPUCK_BALL 100000
 
 #define EPUCK_X_START 500000
 #define EPUCK_Y_START 0
 #define EPUCK_ORIENTATION_START 3.1415927410125732421875f
 
+#ifdef _DEBUG
 static void serial_start(void);
+#endif
+
 /*
  * @brief Make the e-puck shoot the ball in the target/Le e-puck effectue le tir dans le but
  * */

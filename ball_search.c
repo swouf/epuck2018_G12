@@ -115,7 +115,9 @@ position_t compute_shooting_position(position_t ball_position){
 	shooting_position.y = m*shooting_position.x;
 	shooting_position.orientation = atan(m)+PI;
 
+#ifdef _DEBUG
 	chprintf((BaseSequentialStream *)&SD3, "calcul de la shooting position : m = %f\n", m);
+#endif
 
 	return shooting_position;
 }
