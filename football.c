@@ -1,7 +1,7 @@
 /**
  * \file    football.c
- * \brief	Launches the simulation
- * \author	J�r�my (jeremy.jayet@epfl.ch)
+ * \brief	Launches the program
+ * \author	Jérémy Jayet (jeremy.jayet@epfl.ch)
  * \author	Minh Truong (minh.truong@epfl.ch)
  *
  */
@@ -10,14 +10,19 @@
 #include "hal.h"
 #include "memory_protection.h"
 #include "usbcfg.h"
-#include "main.h"
+
+#ifdef _DEBUG
 #include "chprintf.h"
-#include "odometric_controller.h"
-#include "tof.h"
-#include "ball_search.h"
+#endif
+
+#include <odometric_controller.h>
+#include <tof.h>
+#include <ball_search.h>
 #include <football.h>
+#include <positioning.h>
 #include <leds.h>
 
+#ifdef _DEBUG
 static void serial_start(void)
 {
 	static SerialConfig ser_cfg = {
@@ -29,16 +34,35 @@ static void serial_start(void)
 
 	sdStart(&SD3, &ser_cfg); // UART3.
 }
+#endif
 
 void play(void){
+
+		uint32_t distance = 0;
+		position_t shooting_position;
+		position_t ball_position;
+		position_t epuck_position;
+		BSEMAPHORE_DECL(in_shooting_position, TRUE);
+		BSEMAPHORE_DECL(ball_found, TRUE);
+		BSEMAPHORE_DECL(in_initial_position, TRUE);
+		BSEMAPHORE_DECL(east_meas, TRUE);
+		BSEMAPHORE_DECL(north_meas, TRUE);
+		BSEMAPHORE_DECL(west_meas, TRUE);
+		BSEMAPHORE_DECL(south_meas, TRUE);
+
+		uint16_t east, west, north, south;
+
 		halInit();
 	    chSysInit();
 	    mpu_init();
 
+#ifdef _DEBUG
 	    //starts the serial communication
 	    serial_start();
 	    //starts the USB communication
 	    usb_start();
+#endif
+
 	    //init ToF
 	    tof_init();
 
@@ -48,12 +72,6 @@ void play(void){
 
 	    do{
 
-	    	position_t shooting_position;
-	    	position_t ball_position;
-	    	BSEMAPHORE_DECL(in_shooting_position, TRUE);
-	    	BSEMAPHORE_DECL(ball_found, TRUE);
-	    	BSEMAPHORE_DECL(in_initial_position, TRUE);
-
 	    	ball_position = ball_get_position();
 
 	    	//ball_position.x = 100000;
@@ -62,6 +80,8 @@ void play(void){
 
 	    	if(ball_position.x && ball_position.y)
 	    	{
+	    		if(abs(ball_position.y)>20000)
+	    		{
 
 	    		shooting_position = compute_shooting_position(ball_position);
 
@@ -74,13 +94,11 @@ void play(void){
 
 	    		// No one undertstands why, but it works
 	    		chBSemWait(&in_shooting_position);
+	    		}
 
 #ifdef _DEBUG
 	    		chprintf((BaseSequentialStream *)&SD3, "Epuck in shooting position\n");
 #endif
-
-
-	    		uint32_t distance = 0;
 
 	    		distance = ball_get_distance();
 
@@ -99,9 +117,31 @@ void play(void){
 
 	    	set_body_led(1);
 
-	    	odCtrlAddPointToPath(EPUCK_X_START, EPUCK_Y_START, EPUCK_ORIENTATION_START, &in_initial_position);
+	    	epuck_position = odCtrlGetPosition();
 
-	    	chBSemWait(&in_initial_position);
+	    	odCtrlAddPointToPath(epuck_position.x, epuck_position.y, 0, &west_meas);
+	    	chBSemWait(&west_meas);
+	    	west = tof_get_real_distance();
+
+	    	odCtrlAddPointToPath(epuck_position.x, epuck_position.y, PI/2, &north_meas);
+	    	chBSemWait(&north_meas);
+	    	north = tof_get_real_distance();
+
+	    	odCtrlAddPointToPath(epuck_position.x, epuck_position.y, PI, &east_meas);
+	    	chBSemWait(&east_meas);
+	    	east = tof_get_real_distance();
+
+	    	odCtrlAddPointToPath(epuck_position.x, epuck_position.y, 3*PI/2, &south_meas);
+	    	chBSemWait(&south_meas);
+	    	south = tof_get_real_distance();
+
+	    	epuck_position = posGetPos(north, south, west, east);
+
+	    	odCtrlSetPosition(epuck_position.x, epuck_position.y, 3*PI/2);
+
+			odCtrlAddPointToPath(EPUCK_X_START, EPUCK_Y_START, EPUCK_ORIENTATION_START, &in_initial_position);
+
+			chBSemWait(&in_initial_position);
 
 	    	set_body_led(0);
 

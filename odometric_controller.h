@@ -9,10 +9,12 @@
 #ifndef ODOMETRIC_CONTROLLER_H_
 #define ODOMETRIC_CONTROLLER_H_
 
+#ifdef _DEBUG
 //#define _DEBUG_ROTATE
 //#define _DEBUG_FORWARD
 //#define _DEBUG_PATH
 //#define _DEBUG_ODCTRL
+#endif
 
 #define ROTATIONAL_KP	1000
 #define ROTATIONAL_KI	2
@@ -21,10 +23,6 @@
 #define FORWARD_KP	0x8FFFFFF
 #define FORWARD_KI	0xFFFF
 #define FORWARD_KD	0xFFFFFF
-
-//#define FORWARD_KP	1000
-//#define FORWARD_KI	1
-//#define FORWARD_KD	10
 
 #define ORIENTATION_ERROR_MAX	0.0350f
 #define LINEAR_ERROR_MAX		130
@@ -42,10 +40,9 @@ typedef struct position_t{
  * */
 void odCtrlStart(void);
 
-void odCtrlPause(void);
-
-void odCtrlResume(void);
-
+/*
+ * @brief Clear the path buffer/Efface le buffer contenant les points
+ * */
 void odCtrlClear(void);
 /*
  * @brief Makes the e-puck rotate counterclockwise of a given angle/Fait tourner le e-puck d'un certain angle dans le sens anti-horaire

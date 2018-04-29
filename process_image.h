@@ -23,11 +23,6 @@
 #define COLOR_REF_G 56
 #define COLOR_REF_B 1
 
-typedef enum {
-	SEARCH_BALL,
-	FOCUS_ON_BALL,
-} pIm_MODE_t;
-
 typedef struct{
 	uint8_t r;
 	uint8_t g;
@@ -46,15 +41,11 @@ uint16_t pImGetLinePosition(void);
  * @param Semaphore address/L'adresse du s�maphore
  * */
 void pImSetBallDetectionSemaphore(binary_semaphore_t* sem);
+
 /*
- * @brief Computes the position of the e-puck
- * @param The distances between the e-puck and the four walls of the squared arena
+ * @brief Mesure la distance entre la balle et l'epuck à l'aide de la caméra
+ * @return The distance between the e-puck and the object in front of the camera/La distance séparant l'e-puck et l'objet devant lui
  * */
-void pImSetMode(pIm_MODE_t mode);
-/*
- * @brief Computes the position of the e-puck
- * @param The distances between the e-puck and the four walls of the squared arena
- * */
-void pImExtractColor(uint16_t* input, uint8_t* output, unsigned int size);
+uint16_t pIm_get_distance(void);
 
 #endif /* PROCESS_IMAGE_H_ */

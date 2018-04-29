@@ -2,7 +2,7 @@
  * \file    positioning.c
  * \brief   E-puck position
  * \date	april 2018
- * \author	Jérémy Jayet (jeremy.jayet@epfl.ch)
+ * \author	Jï¿½rï¿½my Jayet (jeremy.jayet@epfl.ch)
  * \author	Minh Truong (minh.truong@epfl.ch)
  *
  */
@@ -11,6 +11,7 @@
 #include "memory_protection.h"
 #include "usbcfg.h"
 #include "odometric_controller.h"
+#include <football.h>
 #include <positioning.h>
 
 position_t posGetPos(uint16_t north, uint16_t south, uint16_t west, uint16_t east)

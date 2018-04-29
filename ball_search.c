@@ -2,7 +2,7 @@
  * \file    ball_search.c
  * \brief   Ball position and shooting position
  * \date	april 2018
- * \author	J�r�my Jayet (jeremy.jayet@epfl.ch)
+ * \author	Jérémy Jayet (jeremy.jayet@epfl.ch)
  * \author	Minh Truong (minh.truong@epfl.ch)
  *
  */
@@ -11,15 +11,18 @@
 #include "arm_math.h"
 #include "ch.h"
 #include "hal.h"
-#include <chprintf.h>
-#include <main.h>
 #include "sensors/VL53L0X/VL53L0X.h"
-#include "tof.h"
-#include "ball_search.h"
+
+#include <football.h>
+#include <main.h>
+#include <tof.h>
+#include <ball_search.h>
 #include <odometric_controller.h>
 #include <process_image.h>
-#include <audio/play_melody.h>
-#include <leds.h>
+
+#ifdef _DEBUG
+#include <chprintf.h>
+#endif
 
 void ball_search(void)
 {
@@ -83,7 +86,6 @@ position_t ball_get_position(void)
 //		ball_position.x = 10000;
 //		ball_position.y = -100000;
 	ball_position.orientation = 0;
-	clear_leds();
 	return ball_position;
 }
 uint32_t ball_get_distance(void)

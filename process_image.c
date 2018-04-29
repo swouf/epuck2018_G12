@@ -10,18 +10,17 @@
 #include <stdbool.h>
 #include "ch.h"
 #include "hal.h"
-#include <chprintf.h>
 #include <leds.h>
-
 #include <usbcfg.h>
-
-#include <arm_math.h>
-
-#include <main.h>
-
+#include "arm_math.h"
 #include <camera/dcmi_camera.h>
 #include <camera/po8030.h>
 
+#ifdef _DEBUG
+#include <chprintf.h>
+#endif
+
+#include <football.h>
 #include <process_image.h>
 #include <tof.h>
 #include <odometric_controller.h>
@@ -30,7 +29,6 @@
 
 static uint16_t	ballWidth		= 0;
 static uint16_t	line_position	= IMAGE_BUFFER_SIZE/2;	//middle
-static pIm_MODE_t processMode	= SEARCH_BALL;
 
 static thread_t* CaptureImagePtr	=	NULL;
 static thread_t* ProcessImagePtr	=	NULL;
@@ -92,11 +90,8 @@ static THD_FUNCTION(ProcessImage, arg) {
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
 
-	uint16_t	line_pos_center	=	0;
-
 	uint8_t		*img_buff_ptr;
 	uint8_t		image[IMAGE_BUFFER_SIZE] = {0};
-	position_t	imagePos;
 	do{
 		chBSemWait(&processImageRun);
 		ballWidth = 0;
@@ -109,35 +104,28 @@ static THD_FUNCTION(ProcessImage, arg) {
 			//waits until an image has been captured
 			chBSemWait(&image_ready_sem);
 
-			imagePos = odCtrlGetPosition();
-
 			//gets the pointer to the array filled with the last image in RGB565
 			img_buff_ptr = dcmi_get_last_image_ptr();
 
 			//pImExtractColor((uint16_t*)img_buff_ptr, image, IMAGE_BUFFER_SIZE);
 			pImExtractBlack((uint16_t*)img_buff_ptr, image, IMAGE_BUFFER_SIZE);
 
-			//SendUint8ToMatlab(image, IMAGE_BUFFER_SIZE);
+			//search for a line in the image and gets its width in pixels
+			ballWidth					= pImExtractLineWidth(image);
+			uint16_t distance			= tof_get_distance();
+			uint16_t expectedBallWidth	= tof_get_ball_pixel_width(distance);
 
-			if(processMode == SEARCH_BALL)
+			if(((abs(ballWidth - expectedBallWidth) < MAX_DIFF_BALL_WIDTH) &&\
+					(distance < MAX_DISTANCE) &&\
+					(ballWidth > 0) &&\
+					(abs(line_position-(IMAGE_BUFFER_SIZE/2))<FOCUS_TOLERANCE)))
 			{
-				//search for a line in the image and gets its width in pixels
-				ballWidth					= pImExtractLineWidth(image);
-				uint16_t distance			= tof_get_distance();
-				uint16_t expectedBallWidth	= tof_get_ball_pixel_width(distance);
-
-				if(((abs(ballWidth - expectedBallWidth) < MAX_DIFF_BALL_WIDTH) &&\
-						(distance < MAX_DISTANCE) &&\
-						(ballWidth > 0) &&\
-						(abs(line_position-(IMAGE_BUFFER_SIZE/2))<FOCUS_TOLERANCE)))
-				{
 #ifdef _DEBUG
-					chprintf((BaseSequentialStream *)&SD3, "ballWidth = %d \t expectedBallWidth = %d\t distance = %d \n", ballWidth, expectedBallWidth, distance);
-					chprintf((BaseSequentialStream *)&SD3, "Ball Detected !!!\n");
+				chprintf((BaseSequentialStream *)&SD3, "ballWidth = %d \t expectedBallWidth = %d\t distance = %d \n", ballWidth, expectedBallWidth, distance);
+				chprintf((BaseSequentialStream *)&SD3, "Ball Detected !!!\n");
 #endif
-					chBSemSignal(ball_detected);
-					break;
-				}
+				chBSemSignal(ball_detected);
+				break;
 			}
 		}
 	}while(1);
@@ -145,11 +133,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 /**********		FUNCTIONS		**********/
 
-/**
- *  @return Returns the line's width extracted from the image buffer given
- *  		Returns 0 if line not found
- */
-
+#ifdef _DEBUG
 void SendUint8ToMatlab(uint8_t* data, uint16_t size)
 {
 	chSequentialStreamWrite((BaseSequentialStream *)&SDU1, (uint8_t*)"S", 1);
@@ -157,20 +141,19 @@ void SendUint8ToMatlab(uint8_t* data, uint16_t size)
 	chSequentialStreamWrite((BaseSequentialStream *)&SDU1, (uint8_t*)data, size);
 	chSequentialStreamWrite((BaseSequentialStream *)&SDU1, (uint8_t*)"EOF\0", 4);
 }
+#endif
 
 /**
  * @brief Extract the width of a low intensity line in the image.
  *
- * @return line width
+ *  @return Returns the line's width extracted from the image buffer given
+ *  		Returns 0 if line not found
  */
 static uint16_t pImExtractLineWidth(uint8_t *buffer){
 
 	uint16_t i = 0, begin = 0, end = 0, width = 0;
 	uint8_t stop = 0, wrong_line = 0, line_not_found = 0;
 	uint32_t mean = 0;
-
-	//static uint16_t last_width = PXTOCM/GOAL_DISTANCE;
-	static uint16_t last_width = 0;
 
 	//performs an average
 	for(uint16_t i = 0 ; i < IMAGE_BUFFER_SIZE ; i++){
@@ -236,12 +219,11 @@ static uint16_t pImExtractLineWidth(uint8_t *buffer){
 	if(line_not_found){
 		begin = 0;
 		end = 0;
-		//width = last_width;
 		width = 0;
 	}
 	else
 	{
-		last_width = width = (end - begin);
+		width = (end - begin);
 		line_position = (begin + end)/2; //gives the line position.
 	}
 
@@ -253,7 +235,6 @@ uint16_t pImGetLinePosition(void){
 	return line_position;
 }
 
-
 void pImProcessImageStart(void){
 	if(ProcessImagePtr == NULL){ProcessImagePtr = chThdCreateStatic(waProcessImage, sizeof(waProcessImage), NORMALPRIO, ProcessImage, NULL);}
 	if(CaptureImagePtr == NULL){CaptureImagePtr = chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO, CaptureImage, NULL);}
@@ -263,10 +244,34 @@ void pImSetBallDetectionSemaphore(binary_semaphore_t* sem)
 {
 	ball_detected = sem;
 }
-void pImSetMode(pIm_MODE_t mode)
+static void pImExtractBlack(uint16_t* input, uint8_t* output, unsigned int size)
 {
-	processMode = mode;
+	//unsigned int R = 0;
+	unsigned int G = 0;
+	//unsigned int B = 0;
+
+	for(unsigned int i = 0;i<size;i++)
+	{
+		//R = ((input[i]&0xF800)>>1);
+		G = ((input[i]&0x7E0)<<5);
+		//B = ((input[i]&0x1F)<<9);
+
+		output[i] = 0xFF-(G>>10);
+	}
 }
+uint16_t pIm_get_distance(void)
+{
+	uint16_t distance = 0;
+	if(ballWidth)
+	{
+		distance = PXTOMM/ballWidth;
+	}
+	return distance;
+}
+////////////////////////////////////////////////////////////////////////////////
+
+								/* DELETE */
+
 #define MAX_COLOR_ERROR 50
 void pImExtractColor(uint16_t* input, uint8_t* output, unsigned int size)
 {
@@ -303,21 +308,6 @@ void pImExtractColor(uint16_t* input, uint8_t* output, unsigned int size)
 		}
 		//output[i] = pImCompareColors(pixel, pixelRef);
 		//output[i] = pixel.r;
-	}
-}
-static void pImExtractBlack(uint16_t* input, uint8_t* output, unsigned int size)
-{
-	//unsigned int R = 0;
-	unsigned int G = 0;
-	//unsigned int B = 0;
-
-	for(int i = 0;i<size;i++)
-	{
-		//R = ((input[i]&0xF800)>>1);
-		G = ((input[i]&0x7E0)<<5);
-		//B = ((input[i]&0x1F)<<9);
-
-		output[i] = 0xFF-(G>>10);
 	}
 }
 void pImTest(uint32_t t)
@@ -393,13 +383,4 @@ static uint8_t pImCompareColors(pixel_t color, pixel_t colorRef)
 	//pImTest(dotProduct);
 
 	return cosAlpha;
-}
-uint16_t pIm_get_distance(void)
-{
-	uint16_t distance = 0;
-	if(ballWidth)
-	{
-		distance = PXTOMM/ballWidth;
-	}
-	return distance;
 }

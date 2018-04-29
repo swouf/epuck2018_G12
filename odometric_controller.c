@@ -7,19 +7,23 @@
  *
  */
 
+/**********		INCLUDE		**********/
 #include "ch.h"
 #include "hal.h"
 #include "arm_math.h"
+#include "motors.h"
 
 #include <math.h>
 #include <stdbool.h>
 
+#ifdef _DEBUG
 #include <chprintf.h>
+#endif
 
-
-#include <main.h>
-#include <motors.h>
+#include <football.h>
 #include <odometric_controller.h>
+
+/**********		STATIC AND CST DECLARATIONS		**********/
 
 typedef struct point_t{
 	int x;
@@ -39,7 +43,7 @@ static uint8_t		odRotateShouldTerminate				= 0;
 static uint8_t		odometricRegulatorShouldTerminate	= 0;
 static float		odRotateArgOrientation				= 0;
 
-//semaphore
+//semaphores
 static BSEMAPHORE_DECL(odRotateRunSem, TRUE);
 static BSEMAPHORE_DECL(odRotateEnd, TRUE);
 
@@ -52,8 +56,11 @@ static thread_t* odMoveForwardPtr		=	NULL;
 static thread_t* odRotatePtr			=	NULL;
 static thread_t* odometricRegulatorPtr	=	NULL;
 
+// Functions prototypes
 static void odRotateTerminate(void);
 static void odometricRegulatorTerminate(void);
+
+/**********		THREADS		**********/
 
 static THD_WORKING_AREA(waOdMoveForward, 256);
 static THD_FUNCTION(odMoveForward, lengthPtr) {
@@ -326,16 +333,14 @@ static THD_FUNCTION(odometricRegulator, arg) {
 	}while(1);
 }
 
+/**********		FUNCTIONS		**********/
+
 void odCtrlStart(void)
 {
 	odometricRegulatorPtr = chThdCreateStatic(waOdometricRegulator, sizeof(waOdometricRegulator), NORMALPRIO, odometricRegulator, NULL);
 	odRotatePtr = chThdCreateStatic(waOdRotate, sizeof(waOdRotate), NORMALPRIO, odRotate, NULL);
 	chBSemSignal(&odometricRegulatorRunSem);
 }
-
-void odCtrlPause(void);
-
-void odCtrlResume(void);
 
 void odCtrlAddPointToPath(int x, int y, float orientation, binary_semaphore_t* sem){
 	point_t* a = pathPtr+1;
@@ -353,11 +358,9 @@ void odCtrlAddPointToPath(int x, int y, float orientation, binary_semaphore_t* s
 	pathPtr = a;
 
 #ifdef _DEBUG_PATH
-	//chSysLock();
 				chprintf((BaseSequentialStream *)&SD3, "Point added to path :\n \
 x = %d\t y = %d\t , orientation = %f\n", \
 						pathPtr->x, pathPtr->y, pathPtr->orientation);
-	//chSysUnlock();
 #endif
 }
 

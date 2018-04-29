@@ -9,16 +9,21 @@
 #include <stdlib.h>
 #include "ch.h"
 #include "hal.h"
-#include <main.h>
 #include "sensors/VL53L0X/VL53L0X.h"
-#include "tof.h"
-#include "process_image.h"
+
+#include <football.h>
+#include <tof.h>
+#include <process_image.h>
 
 //static VL53L0X_Dev_t device;
 
 void tof_init(void)
 {
 	VL53L0X_start();
+}
+uint16_t tof_get_real_distance(void)
+{
+	return (uint16_t)VL53L0X_get_dist_mm();
 }
 
 uint16_t tof_get_distance(void)
