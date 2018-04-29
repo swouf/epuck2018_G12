@@ -14,10 +14,10 @@
 #define MIN_LINE_WIDTH			30
 #define PXTOMM					31400.0f //experimental value
 #define GOAL_DISTANCE 			10.0f
-#define MAX_DISTANCE 			1000
+#define MAX_DISTANCE 			1200
 #define MAX_DIFF_BALL_WIDTH		50
 #define N_MEAN					4
-#define FOCUS_TOLERANCE			10
+#define FOCUS_TOLERANCE			100
 
 #define COLOR_REF_R 198
 #define COLOR_REF_G 56
@@ -34,7 +34,7 @@ typedef struct{
 	uint8_t b;
 } pixel_t;
 /*
- * @brief Initialization of the camera of the e-puck/Initialisation de la caméra de l'e-puck
+ * @brief Initialization of the camera of the e-puck/Initialisation de la camï¿½ra de l'e-puck
  * */
 void pImProcessImageStart(void);
 /*
@@ -42,8 +42,8 @@ void pImProcessImageStart(void);
  * */
 uint16_t pImGetLinePosition(void);
 /*
- * @brief Setting a semaphore when the ball is detected/Mets un sémaphore à 1 quand la balle est détectée
- * @param Semaphore address/L'adresse du sémaphore
+ * @brief Setting a semaphore when the ball is detected/Mets un sï¿½maphore ï¿½ 1 quand la balle est dï¿½tectï¿½e
+ * @param Semaphore address/L'adresse du sï¿½maphore
  * */
 void pImSetBallDetectionSemaphore(binary_semaphore_t* sem);
 /*

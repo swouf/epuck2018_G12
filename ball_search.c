@@ -2,7 +2,7 @@
  * \file    ball_search.c
  * \brief   Ball position and shooting position
  * \date	april 2018
- * \author	Jérémy Jayet (jeremy.jayet@epfl.ch)
+ * \author	Jï¿½rï¿½my Jayet (jeremy.jayet@epfl.ch)
  * \author	Minh Truong (minh.truong@epfl.ch)
  *
  */
@@ -34,12 +34,6 @@ void ball_search(void)
 		pImProcessImageStart();
 
 		odCtrlAddPointToPath(position.x, position.y, position.orientation+(PI/2), NULL);
-		odCtrlAddPointToPath(position.x, position.y, position.orientation-(PI/2), NULL);
-		odCtrlAddPointToPath(position.x, position.y, position.orientation+(PI/2), NULL);
-		odCtrlAddPointToPath(position.x, position.y, position.orientation-(PI/2), NULL);
-		odCtrlAddPointToPath(position.x, position.y, position.orientation+(PI/2), NULL);
-		odCtrlAddPointToPath(position.x, position.y, position.orientation-(PI/2), NULL);
-		odCtrlAddPointToPath(position.x, position.y, position.orientation+(PI/2), NULL);
 		odCtrlAddPointToPath(position.x, position.y, position.orientation-(PI/2), &ball_spotted);
 
 	#ifdef _DEBUG
@@ -49,7 +43,6 @@ void ball_search(void)
 	chBSemWait(&ball_spotted);
 
     odCtrlStopMovement();
-	set_body_led(1);
 
 	odCtrlSetMaxSpeed(2200);
 
@@ -73,10 +66,18 @@ position_t ball_get_position(void)
 	chprintf((BaseSequentialStream *)&SD3, "epuck_ball_distance = %d !\n", epuck_ball_distance);
 #endif
 
-	ball_direction = epuck_actual_position.orientation; // @suppress("Field cannot be resolved")
+	if(epuck_ball_distance)
+	{
+		ball_direction = epuck_actual_position.orientation; // @suppress("Field cannot be resolved")
 
-	ball_position.x = epuck_actual_position.x - epuck_ball_distance*arm_cos_f32(PI-ball_direction);
-	ball_position.y = epuck_ball_distance*arm_sin_f32(PI-ball_direction) - epuck_actual_position.y;
+		ball_position.x = epuck_actual_position.x - epuck_ball_distance*arm_cos_f32(PI-ball_direction);
+		ball_position.y = epuck_ball_distance*arm_sin_f32(PI-ball_direction) - epuck_actual_position.y;
+	}
+	else
+	{
+		ball_position.x = 0;
+		ball_position.y = 0;
+	}
 
 	//TEST
 //		ball_position.x = 10000;

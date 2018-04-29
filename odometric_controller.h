@@ -29,7 +29,7 @@
 #define ORIENTATION_ERROR_MAX	0.0350f
 #define LINEAR_ERROR_MAX		130
 
-#define PATH_BUFFER_SIZE		10
+#define PATH_BUFFER_SIZE		30
 
 typedef struct position_t{
 	int x;
@@ -85,7 +85,7 @@ void odCtrlShoot(void);
  * */
 void odCtrlStopMovement(void);
 /*
- * @brief Sets the e-puck max speed/Règle la vitesse maximale de l'e-puck
+ * @brief Sets the e-puck max speed/Rï¿½gle la vitesse maximale de l'e-puck
  * @param The max speed/La vitesse maximale de l'e-puck
  * */
 void odCtrlSetMaxSpeed(int speed);

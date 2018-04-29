@@ -45,6 +45,7 @@ static BSEMAPHORE_DECL(odRotateEnd, TRUE);
 
 static BSEMAPHORE_DECL(odometricRegulatorRunSem, TRUE);
 static BSEMAPHORE_DECL(odometricRegulatorEnd, TRUE);
+static binary_semaphore_t* moveForwardEndSem = NULL;
 
 // threads pointers
 static thread_t* odMoveForwardPtr		=	NULL;
@@ -128,6 +129,8 @@ static THD_FUNCTION(odMoveForward, lengthPtr) {
 		chprintf((BaseSequentialStream *)&SD3, "linearStep = %d\t linearPos = %d\n", linearStep, linearPos);
 #endif
 	}
+	if(moveForwardEndSem != NULL){chBSemSignal(moveForwardEndSem);}
+	moveForwardEndSem = NULL;
 	odMoveForwardPtr = NULL;
 }
 
@@ -313,6 +316,7 @@ static THD_FUNCTION(odometricRegulator, arg) {
 				chprintf((BaseSequentialStream *)&SD3, "Fin de la BOUCLE !\n");
 #endif
 			if(target->endSem != NULL){chBSemSignal(target->endSem);}
+			target->endSem = NULL;
 			if(!odometricRegulatorShouldTerminate){chThdSleepMilliseconds(500);}
 		}
 		chBSemSignal(&odometricRegulatorEnd);
@@ -388,10 +392,11 @@ void odCtrlMoveForward(int length, binary_semaphore_t* sem)
 {
 	static int a = 0;
 	a = length;
+
+	moveForwardEndSem = sem;
+
 	if(odMoveForwardPtr) chThdWait(odMoveForwardPtr);
 	odMoveForwardPtr = chThdCreateStatic(waOdMoveForward, sizeof(waOdMoveForward), NORMALPRIO, odMoveForward, &a);
-
-	if(target->endSem != NULL){chBSemSignal(target->endSem);}
 }
 
 
@@ -437,6 +442,7 @@ void odCtrlClear(void)
 		path[i].x = 0;
 		path[i].y = 0;
 		path[i].orientation = 0;
+		path[i].endSem = NULL;
 	}
 
 	pathPtr = target;
@@ -451,12 +457,8 @@ void odCtrlStopMovement(void)
 	chThdTerminate(odMoveForwardPtr);
 	odRotateTerminate();
 
-	//if(odMoveForwardPtr) {chThdWait(odMoveForwardPtr);}
-
 	chBSemWaitTimeout(&odRotateEnd, MS2ST(100));
 	chBSemWaitTimeout(&odometricRegulatorEnd, MS2ST(100));
-
-	//if(odometricRegulator) {chThdWait(odometricRegulatorPtr);}
 
 #ifdef _DEBUG_ODCTRL
 	chprintf((BaseSequentialStream *)&SD3, "Movement stopped !\nClearing...\t");

@@ -99,6 +99,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 	position_t	imagePos;
 	do{
 		chBSemWait(&processImageRun);
+		ballWidth = 0;
 
 #ifdef _DEBUG
 		chprintf((BaseSequentialStream *)&SD3, " Launching ProcessImage ! \n");
@@ -128,10 +129,9 @@ static THD_FUNCTION(ProcessImage, arg) {
 				if(((abs(ballWidth - expectedBallWidth) < MAX_DIFF_BALL_WIDTH) &&\
 						(distance < MAX_DISTANCE) &&\
 						(ballWidth > 0) &&\
-						(abs(line_position-(IMAGE_BUFFER_SIZE/2))<100)))
+						(abs(line_position-(IMAGE_BUFFER_SIZE/2))<FOCUS_TOLERANCE)))
 				{
 #ifdef _DEBUG
-					chprintf((BaseSequentialStream *)&SD3, "Color : %x\n", img_buff_ptr[line_position]);
 					chprintf((BaseSequentialStream *)&SD3, "ballWidth = %d \t expectedBallWidth = %d\t distance = %d \n", ballWidth, expectedBallWidth, distance);
 					chprintf((BaseSequentialStream *)&SD3, "Ball Detected !!!\n");
 #endif
@@ -396,6 +396,10 @@ static uint8_t pImCompareColors(pixel_t color, pixel_t colorRef)
 }
 uint16_t pIm_get_distance(void)
 {
-	uint16_t distance = PXTOMM/ballWidth;
+	uint16_t distance = 0;
+	if(ballWidth)
+	{
+		distance = PXTOMM/ballWidth;
+	}
 	return distance;
 }
