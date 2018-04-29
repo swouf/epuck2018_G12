@@ -19,7 +19,6 @@
 #include <tof.h>
 #include <ball_search.h>
 #include <football.h>
-#include <positioning.h>
 #include <leds.h>
 
 #ifdef _DEBUG
@@ -116,28 +115,6 @@ void play(void){
 	    	}
 
 	    	set_body_led(1);
-
-	    	epuck_position = odCtrlGetPosition();
-
-	    	odCtrlAddPointToPath(epuck_position.x, epuck_position.y, 0, &west_meas);
-	    	chBSemWait(&west_meas);
-	    	west = tof_get_real_distance();
-
-	    	odCtrlAddPointToPath(epuck_position.x, epuck_position.y, PI/2, &north_meas);
-	    	chBSemWait(&north_meas);
-	    	north = tof_get_real_distance();
-
-	    	odCtrlAddPointToPath(epuck_position.x, epuck_position.y, PI, &east_meas);
-	    	chBSemWait(&east_meas);
-	    	east = tof_get_real_distance();
-
-	    	odCtrlAddPointToPath(epuck_position.x, epuck_position.y, 3*PI/2, &south_meas);
-	    	chBSemWait(&south_meas);
-	    	south = tof_get_real_distance();
-
-	    	epuck_position = posGetPos(north, south, west, east);
-
-	    	odCtrlSetPosition(epuck_position.x, epuck_position.y, 3*PI/2);
 
 			odCtrlAddPointToPath(EPUCK_X_START, EPUCK_Y_START, EPUCK_ORIENTATION_START, &in_initial_position);
 
